@@ -33,6 +33,7 @@ export function AuthModal({ mode: initialMode, onClose }) {
   const { signIn, signUp, signInWithGoogle, isConfigured } = useAuth()
 
   const [mode, setMode] = useState(initialMode)
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -41,11 +42,18 @@ export function AuthModal({ mode: initialMode, onClose }) {
   // is waiting on an email confirmation.
   const [checkEmail, setCheckEmail] = useState(false)
 
+  const nameRef = useRef(null)
   const emailRef = useRef(null)
 
+  const isSignUp = mode === 'signup'
+
+  // Whichever field is first in the current mode — signing up puts Name above
+  // Email, and switching modes should leave the caret at the top of the form
+  // rather than in the middle of it.
   useEffect(() => {
-    emailRef.current?.focus()
-  }, [])
+    const first = isSignUp ? nameRef : emailRef
+    first.current?.focus()
+  }, [isSignUp])
 
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
@@ -53,15 +61,13 @@ export function AuthModal({ mode: initialMode, onClose }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const isSignUp = mode === 'signup'
-
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
     setBusy(true)
 
     const { data, error: err } = isSignUp
-      ? await signUp(email, password)
+      ? await signUp(email, password, name.trim())
       : await signIn(email, password)
 
     setBusy(false)
@@ -151,6 +157,24 @@ export function AuthModal({ mode: initialMode, onClose }) {
             </div>
 
             <form onSubmit={handleSubmit}>
+              {/* Sign up only — logging in identifies you by email, and asking
+                  for a name you've already given would just be one more field
+                  between you and the account you already have. */}
+              {isSignUp && (
+                <label className="auth-field">
+                  Name
+                  <input
+                    ref={nameRef}
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    autoComplete="name"
+                    placeholder="Your name"
+                  />
+                </label>
+              )}
+
               <label className="auth-field">
                 Email
                 <input
@@ -161,6 +185,7 @@ export function AuthModal({ mode: initialMode, onClose }) {
                   required
                   autoComplete="email"
                   spellCheck="false"
+                  placeholder="example@example.com"
                 />
               </label>
 
@@ -175,6 +200,7 @@ export function AuthModal({ mode: initialMode, onClose }) {
                   // browser rather than after a round trip.
                   minLength={6}
                   autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                  placeholder="••••••••"
                 />
               </label>
 

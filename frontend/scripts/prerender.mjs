@@ -46,16 +46,48 @@ try {
 
   let out = index.replace('<div id="root"></div>', `<div id="root">${html}</div>`)
 
-  // SITE_URL is the canonical origin, e.g. https://ytaudit.com — set it in the
-  // Vercel project settings. Everything below needs an absolute URL: a
-  // canonical tag or a sitemap with a relative path is worse than none.
-  const site = (process.env.SITE_URL || '').replace(/\/$/, '')
+  // The canonical origin. Everything below needs an absolute URL: a canonical
+  // tag, an og:image or a sitemap with a relative path is worse than none.
+  //
+  // Defaulted rather than required, because the cost of getting it wrong is
+  // silent — a build with no SITE_URL used to ship no sitemap and no canonical
+  // at all, and nothing in the output said the site had gone unindexed.
+  // Override it in the Vercel project settings when a real domain replaces the
+  // vercel.app one.
+  const site = (process.env.SITE_URL || 'https://audit-youtube.vercel.app').replace(/\/$/, '')
 
   if (site) {
-    // Tells Google which URL is the real one. Without it, the same page
-    // reachable as /, /Home and a *.vercel.app alias competes with itself and
-    // the ranking is split across the duplicates.
-    out = out.replace('</head>', `  <link rel="canonical" href="${site}/Home" />\n  </head>`)
+    // What a crawler and a link preview should treat as *the* URL. Without the
+    // canonical, the same page reachable as /, /Home and any *.vercel.app
+    // alias competes with itself and the ranking is split across duplicates.
+    //
+    // og:image is absolute for the same reason and one more: X, Slack and
+    // WhatsApp fetch it from their own servers, where a relative path resolves
+    // to nothing and the card falls back to a blank rectangle.
+    const head = [
+      `<link rel="canonical" href="${site}/Home" />`,
+      `<meta property="og:url" content="${site}/Home" />`,
+      `<meta property="og:image" content="${site}/og.png" />`,
+      `<meta property="og:image:width" content="1200" />`,
+      `<meta property="og:image:height" content="630" />`,
+      `<meta name="twitter:image" content="${site}/og.png" />`,
+      // Says what the thing *is* in Google's own vocabulary. The FAQPage block
+      // is emitted by Landing.jsx from the FAQ it renders; this is the piece
+      // that has no visible counterpart, so it belongs in the head.
+      `<script type="application/ld+json">${JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'Channel Audit',
+        url: `${site}/Home`,
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Any',
+        description:
+          'Score any YouTube channel against its own median performance. Twelve public-data checks on titles, descriptions, tags and upload habits.',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      })}</script>`,
+    ]
+
+    out = out.replace('</head>', `  ${head.join('\n  ')}\n  </head>`)
     writeFileSync(
       resolve(root, 'dist/sitemap.xml'),
       `<?xml version="1.0" encoding="UTF-8"?>

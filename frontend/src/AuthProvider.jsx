@@ -99,14 +99,20 @@ export function AuthProvider({ children }) {
       // requestAuth('login' | 'signup') opens the dialog from anywhere.
       requestAuth: setAuthMode,
 
-      signUp: (email, password) =>
+      signUp: (email, password, name) =>
         supabase.auth.signUp({
           email,
           password,
-          // Where the confirmation email sends them back to. Must also be listed
-          // under Authentication → URL Configuration in the Supabase dashboard,
-          // or the link silently falls back to the project's site URL.
-          options: { emailRedirectTo: returnTo() },
+          options: {
+            // Where the confirmation email sends them back to. Must also be
+            // listed under Authentication → URL Configuration in the Supabase
+            // dashboard, or the link silently falls back to the project's site
+            // URL.
+            emailRedirectTo: returnTo(),
+            // Written to user_metadata under the same key Google's OAuth uses,
+            // so UserMenu reads one field regardless of how you signed up.
+            data: { full_name: name },
+          },
         }),
 
       signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),

@@ -5,6 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Search Console ownership is proved by public/google0dc7bb17817a1e0d.html,
+         not by a meta tag here. The file has to stay: Google re-checks it
+         periodically and un-verifies the property if it 404s, which silently
+         stops the indexing reports. -->
+
     <!-- Under ~60 characters so it isn't truncated in results, with the phrase
          people actually search for at the front. -->
     <title>Free YouTube Channel Audit — Score Any Channel Instantly</title>
@@ -17,12 +22,23 @@
     />
 
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Channel Audit" />
     <meta property="og:title" content="Free YouTube Channel Audit" />
     <meta
       property="og:description"
       content="Score any YouTube channel against its own median performance. No login, no extension."
     />
+
+    <!-- Twitter reads the og: tags for everything it can, so only the two it
+         has no equivalent for are repeated. The absolute URLs — canonical,
+         og:url, og:image — are injected at build time by scripts/prerender.mjs,
+         which is the only place that knows the deployed origin. -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Free YouTube Channel Audit" />
+    <meta
+      name="twitter:description"
+      content="Score any YouTube channel against its own median performance. No login, no extension."
+    />
   </head>
   <body>
     <div id="root"></div>
