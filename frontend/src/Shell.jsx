@@ -57,6 +57,14 @@ function YouTubeLogo() {
   )
 }
 
+function HeartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 21S3 14.5 3 8.9A5 5 0 0 1 12 6a5 5 0 0 1 9 2.9C21 14.5 12 21 12 21Z" />
+    </svg>
+  )
+}
+
 function SearchIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -179,6 +187,21 @@ export function Shell({ active, onNavigate, headerSearch, sidebar, children }) {
         {/* While the session is still being restored the corner stays empty,
             so a signed-in visitor never sees Log in flash on reload. */}
         <div className="yt-header-end">
+          {/* Sits left of the account corner and doesn't depend on the session,
+              so it's in the same place whether you're signed in or out. An
+              anchor, not a button: it leaves the app, so it should behave like
+              a link and open in its own tab. */}
+          <a
+            className="yt-donate"
+            href="https://paypal.me/GrizzlyProd1"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Support this project"
+          >
+            <HeartIcon />
+            <span>Donate For Me</span>
+          </a>
+
           {loading ? null : user ? (
             <UserMenu />
           ) : (

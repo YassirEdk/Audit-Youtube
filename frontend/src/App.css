@@ -234,6 +234,52 @@ body::before {
   font-size: 0.875rem;
 }
 
+/* The same pill as .yt-ghost, in red rather than blue: it's the one control in
+   the corner that isn't about your account, and the heart carries that on its
+   own without a third shape in the masthead. */
+.yt-donate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--bad);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  white-space: nowrap;
+  transition:
+    background-color var(--fast) var(--ease),
+    border-color var(--fast) var(--ease);
+}
+
+.yt-donate:hover {
+  background: rgba(255, 78, 69, 0.12);
+  border-color: rgba(255, 78, 69, 0.4);
+}
+
+.yt-donate svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+/* Where the masthead gets tight the heart alone still reads as the ask, and
+   the space it frees goes to search and the account corner. */
+@media (max-width: 700px) {
+  .yt-donate {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .yt-donate span {
+    display: none;
+  }
+}
+
 .yt-icon-btn {
   display: grid;
   place-items: center;
