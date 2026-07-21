@@ -1,0 +1,205 @@
+/**
+ * YouTube's application chrome: fixed masthead carrying the logo and the
+ * section nav, content column offset to clear it.
+ *
+ * The point of copying the layout this closely is recognition — a creator
+ * arrives already knowing where everything is, because it's where YouTube
+ * puts it.
+ */
+
+import { useEffect, useRef, useState } from 'react'
+import { useAuth } from './useAuth.js'
+
+const NAV = [
+  {
+    id: null,
+    label: 'Home',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 4.44 19 11v8.5h-4.5v-6h-5v6H5V11l7-6.56Zm0-1.37L4 10.5v10h6.5v-6h3v6H20v-10L12 3.07Z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'checks',
+    label: 'What we check',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9.6 16.2 4.8 11.4l1.4-1.4 3.4 3.4L17.8 5l1.4 1.4-9.6 9.8Z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'faq',
+    label: 'FAQ',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M11.3 15h1.4v1.4h-1.4V15Zm.7-8c-1.7 0-3 1.3-3 3h1.4c0-.9.7-1.6 1.6-1.6s1.6.7 1.6 1.6c0 .6-.3.9-.9 1.4-.8.6-1.4 1.1-1.4 2.4h1.4c0-.7.3-1 .9-1.5.8-.6 1.4-1.2 1.4-2.3 0-1.7-1.3-3-3-3Zm0-4a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 1.2a7.8 7.8 0 1 1 0 15.6 7.8 7.8 0 0 1 0-15.6Z" />
+      </svg>
+    ),
+  },
+]
+
+function YouTubeLogo() {
+  return (
+    <span className="yt-logo" aria-label="Channel Audit home">
+      <svg viewBox="0 0 28 20" className="yt-logo-mark" aria-hidden="true">
+        <path
+          fill="#f00"
+          d="M27.4 3.1A3.5 3.5 0 0 0 24.9.6C22.7 0 14 0 14 0S5.3 0 3.1.6A3.5 3.5 0 0 0 .6 3.1C0 5.3 0 10 0 10s0 4.7.6 6.9a3.5 3.5 0 0 0 2.5 2.5C5.3 20 14 20 14 20s8.7 0 10.9-.6a3.5 3.5 0 0 0 2.5-2.5C28 14.7 28 10 28 10s0-4.7-.6-6.9Z"
+        />
+        <path className="yt-logo-play" fill="#fff" d="M11.2 14.3 18.4 10l-7.2-4.3v8.6Z" />
+      </svg>
+      <span className="yt-logo-text">
+        Audit<sup>BETA</sup>
+      </span>
+    </span>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M20.9 19.6 15.5 14a6.5 6.5 0 1 0-1 1l5.5 5.6.9-1ZM5.2 10.5a5.3 5.3 0 1 1 10.6 0 5.3 5.3 0 0 1-10.6 0Z" />
+    </svg>
+  )
+}
+
+/**
+ * True once the page has moved at all. Only the boolean is stored, so the
+ * header re-renders on the two crossings rather than on every scroll event.
+ */
+function useScrolled() {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return scrolled
+}
+
+/**
+ * The signed-in corner of the masthead: avatar, and a menu behind it.
+ *
+ * Google accounts carry a picture and a name; email signups carry neither, so
+ * both fall back to the initial and the address.
+ */
+function UserMenu() {
+  const { user, signOut } = useAuth()
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e) => !ref.current?.contains(e.target) && setOpen(false)
+    const onKey = (e) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const { avatar_url: avatarUrl, full_name: fullName } = user.user_metadata ?? {}
+  const label = fullName || user.email
+
+  return (
+    <div className="yt-user" ref={ref}>
+      <button
+        type="button"
+        className="yt-avatar plain"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account"
+      >
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" referrerPolicy="no-referrer" />
+        ) : (
+          <span>{label?.[0]?.toUpperCase()}</span>
+        )}
+      </button>
+
+      {open && (
+        <div className="yt-menu" role="menu">
+          <div className="yt-menu-head">
+            {fullName && <strong>{fullName}</strong>}
+            <span>{user.email}</span>
+          </div>
+          <button type="button" className="plain yt-signout" role="menuitem" onClick={() => signOut()}>
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function Shell({ active, onNavigate, headerSearch, sidebar, children }) {
+  const { user, loading, requestAuth } = useAuth()
+  const scrolled = useScrolled()
+
+  return (
+    <>
+      <header className={`yt-header ${scrolled ? 'is-scrolled' : ''}`}>
+        <div className="yt-header-start">
+          <button type="button" className="yt-brand" onClick={() => onNavigate(null)}>
+            <YouTubeLogo />
+          </button>
+
+          {/* Hidden on report pages: those sections live on the landing page,
+              and the sidebar carries the navigation that's useful here. */}
+          {!sidebar && (
+          <nav className="yt-nav" aria-label="Sections">
+            {NAV.map((item) => (
+              <button
+                type="button"
+                key={item.label}
+                className={`yt-nav-item ${active === item.id ? 'is-active' : ''}`}
+                onClick={() => onNavigate(item.id)}
+              >
+                <span className="yt-nav-icon">{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+          </nav>
+          )}
+        </div>
+
+        {/* The masthead search only appears once you're past the landing page,
+            exactly like YouTube: the home page owns the big search, every
+            other page gets the compact one up top. */}
+        <div className="yt-header-mid">{headerSearch}</div>
+
+        {/* While the session is still being restored the corner stays empty,
+            so a signed-in visitor never sees Log in flash on reload. */}
+        <div className="yt-header-end">
+          {loading ? null : user ? (
+            <UserMenu />
+          ) : (
+            <>
+              <button type="button" className="yt-ghost" onClick={() => requestAuth('login')}>
+                Log in
+              </button>
+              <button type="button" className="yt-signup" onClick={() => requestAuth('signup')}>
+                Sign up
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+
+      <div className={`yt-body ${sidebar ? 'has-sidebar' : ''}`}>
+        {sidebar}
+        <main className="yt-main">{children}</main>
+      </div>
+    </>
+  )
+}
+
+export { SearchIcon }

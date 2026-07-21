@@ -1,0 +1,15 @@
+# Every .env variant except the blank template — a stray .env.bak or
+# .env.local holds live keys just as surely as .env does.
+.env
+.env.*
+!.env.example
+.venv/
+.md
+__pycache__/
+reports/
+
+# graphify (graphifyy) — generated knowledge graph, caches, and local state.
+graphify-out/
+.graphify/
+# Hook paths are absolute and point at this machine's .venv — not portable.
+.claude/settings.json

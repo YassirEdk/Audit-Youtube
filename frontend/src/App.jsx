@@ -1,0 +1,161 @@
+import { useEffect, useState } from 'react'
+import { ChannelSuggest } from './ChannelSuggest.jsx'
+import { Landing } from './Landing.jsx'
+import { Results } from './Results.jsx'
+import { Sidebar } from './Sidebar.jsx'
+import { SearchIcon, Shell } from './Shell.jsx'
+import { readDepth, writeDepth } from './depth.js'
+import { FREE_VIDEOS } from './limits.js'
+import { useLocked } from './useAuth.js'
+import { useRoute } from './useRoute.js'
+import { useScrollSpy } from './useScrollSpy.js'
+import './App.css'
+
+// Only the sections the header links to. "how" is deliberately absent: it's
+// still on the page, but tracking it would light nothing while you scroll
+// through it, leaving the nav briefly blank.
+const SECTIONS = ['checks', 'faq']
+
+function App() {
+  const { channel, navigate } = useRoute()
+  const locked = useLocked()
+  const [depth, setDepth] = useState(readDepth)
+  // The server clamps this too, and that's the boundary that counts. Clamping
+  // here as well keeps the page honest: without it the UI would claim a depth
+  // the API isn't going to deliver.
+  const videos = locked ? Math.min(depth, FREE_VIDEOS) : depth
+
+  // The form passes a depth; the masthead search doesn't, and keeps the
+  // current one.
+  function startAudit(nextChannel, nextDepth) {
+    if (nextDepth) {
+      writeDepth(nextDepth)
+      setDepth(nextDepth)
+    }
+    navigate({ channel: nextChannel })
+  }
+  // Probed once here and passed down, rather than in both views — it answers
+  // "is the server up" and "is a model configured" in the same response.
+  const [health, setHealth] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then((r) => r.json())
+      .then(setHealth)
+      .catch(() => setHealth({ offline: true }))
+  }, [])
+
+  const serverDown = health?.offline
+
+  useEffect(() => {
+    if (!channel) document.title = 'YouTube Channel Audit — score any channel'
+  }, [channel])
+
+  // Nav sections live on the landing page only. From a results page the link
+  // has to go home first, then scroll — and the scroll can't happen until the
+  // landing page has actually mounted, hence the pending id rather than an
+  // immediate scrollIntoView.
+  const [pendingScroll, setPendingScroll] = useState(null)
+
+  useEffect(() => {
+    if (!pendingScroll || channel) return
+    document.getElementById(pendingScroll)?.scrollIntoView({ block: 'start' })
+    setPendingScroll(null)
+  }, [pendingScroll, channel])
+
+  // The sections only exist on the landing page, so the spy is idle on results.
+  const activeSection = useScrollSpy(SECTIONS, !channel)
+
+  // Nav items either go home (null) or scroll to a landing section.
+  function handleNavigate(id) {
+    if (!id) {
+      navigate(null)
+      return
+    }
+    if (channel) navigate(null, { resetScroll: false })
+    setPendingScroll(id)
+  }
+
+  return (
+    <Shell
+      active={channel ? undefined : activeSection}
+      onNavigate={handleNavigate}
+      // Only on results pages — on the landing page the section nav is still
+      // the right thing, and a rail of past audits would crowd the pitch.
+      sidebar={
+        channel ? (
+          <Sidebar
+            current={channel}
+            onHome={() => navigate(null)}
+            onSelect={(c) => startAudit(c)}
+          />
+        ) : null
+      }
+      // On a results page the masthead carries a compact search, so a second
+      // audit never means going home first — same as searching from any
+      // YouTube page.
+      headerSearch={
+        channel ? (
+          <CompactSearch initial={channel} onSubmit={(c) => startAudit(c)} />
+        ) : null
+      }
+    >
+      <div className="app">
+        {serverDown && (
+          <div className="banner error">
+            <strong>Server not running.</strong> Start it by double-clicking{' '}
+            <code>start-server.bat</code>, then reload this page.
+          </div>
+        )}
+
+        {channel ? (
+          <Results
+            // Remounts on channel change so no state leaks between audits.
+            key={`${channel}:${videos}`}
+            channel={channel}
+            videos={videos}
+            health={health}
+            onNewAudit={() => navigate(null)}
+          />
+        ) : (
+          <Landing onStart={startAudit} />
+        )}
+
+        <footer>
+          <p>
+            Performance is scored against each channel's own median views, so
+            one viral video doesn't make everything else look like a failure.
+            Public data only — no retention, CTR, or traffic sources.
+          </p>
+        </footer>
+      </div>
+    </Shell>
+  )
+}
+
+function CompactSearch({ initial, onSubmit }) {
+  const [value, setValue] = useState(initial)
+
+  return (
+    <form
+      className="search"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (value.trim()) onSubmit(value.trim())
+      }}
+    >
+      <ChannelSuggest
+        value={value}
+        onChange={setValue}
+        onPick={(handle) => onSubmit(handle)}
+        placeholder="Audit another channel"
+        ariaLabel="Channel to audit"
+      />
+      <button type="submit" aria-label="Audit channel">
+        <SearchIcon />
+      </button>
+    </form>
+  )
+}
+
+export default App

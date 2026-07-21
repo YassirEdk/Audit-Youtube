@@ -1,0 +1,3215 @@
+/* ============================================================================
+   YouTube's interface language.
+
+   Copied deliberately and fairly literally: masthead height, sidebar width,
+   the pill search with its attached button, chip row, 12px card radius, the
+   #0f0f0f / #212121 / #272727 surface ladder, and Roboto. A creator opening
+   this already knows where everything is, because it's where YouTube puts it.
+
+   Two places we don't copy: the accent for primary actions is YouTube's
+   white-on-dark button rather than red (red is reserved for the logo and for
+   failure, so it keeps meaning something), and data colours come from a
+   separate palette chosen for contrast rather than from the brand.
+   ========================================================================= */
+
+:root {
+  color-scheme: dark;
+  /* Lets height/block-size animate to and from `auto`, which is what makes
+     the FAQ accordion able to open smoothly to its real height. */
+  interpolate-size: allow-keywords;
+
+  --bg: #0f0f0f;
+  --surface: #212121;
+  --surface-2: #272727;
+  --hover: #3f3f3f;
+  --text: #f1f1f1;
+  --text-2: #aaaaaa;
+  --text-3: #717171;
+  --border: #303030;
+
+  --red: #ff0000;
+  --blue: #3ea6ff;
+
+  --header-h: 56px;
+  --sidebar-w: 240px;
+  /* One spacing unit between every stacked block and every grid cell. The
+     single biggest reason a page looks unresolved is three gap values. */
+  --gap: 12px;
+
+  /* Status trio. Red matches YouTube's own red so failure reads native. */
+  --ok: #2ba640;
+  --caution: #ffd24c;
+  --bad: #ff4e45;
+
+  /* Chart pair: YouTube blue against YouTube red — the two colours already
+     in the product's vocabulary, far enough apart in hue for CVD. */
+  --above: #3ea6ff;
+  --below: #ff4e45;
+
+  --font: Roboto, "Segoe UI", Arial, system-ui, sans-serif;
+  --mono: "Roboto Mono", ui-monospace, Consolas, monospace;
+
+  --ease: cubic-bezier(0.2, 0, 0.2, 1);
+  --fast: 150ms;
+  --slow: 420ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* An ambient glow anchored off the bottom-right corner, reaching in toward the
+   centre. Fixed rather than absolute so it stays put as the page scrolls —
+   it's lighting on the surface, not an object sitting in the document.
+   Three offset radials in the product's existing red and blue, with a warm
+   ember at the corner itself: the falloff shifts hue on the way in rather
+   than just dimming, which is what keeps it reading as light. */
+body::before {
+  content: '';
+  position: fixed;
+  /* Overdrawn past every edge so the blur below has real colour to sample at
+     the boundaries. Blurring a viewport-sized layer samples transparency off
+     its own edges and leaves a pale seam along them. */
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(90px);
+  background:
+    radial-gradient(
+      70rem 55rem at 83% 89%,
+      rgba(255, 40, 30, 0.55),
+      rgba(255, 40, 30, 0.22) 38%,
+      transparent 70%
+    ),
+    radial-gradient(
+      60rem 48rem at 66% 76%,
+      rgba(62, 166, 255, 0.34),
+      rgba(62, 166, 255, 0.12) 42%,
+      transparent 72%
+    ),
+    radial-gradient(
+      38rem 30rem at 86% 86%,
+      rgba(255, 120, 60, 0.3),
+      transparent 60%
+    );
+  animation: glow-drift 18s var(--ease) infinite alternate;
+}
+
+/* Slow breathing rather than a loop you can time — the corner should look like
+   it's being lit by something, not like a gif. */
+@keyframes glow-drift {
+  to {
+    transform: translate3d(-6%, -4%, 0) scale(1.16);
+    opacity: 0.78;
+  }
+}
+
+/* Bright highlight with black text, used everywhere. The light --blue carries
+   dark text at strong contrast, so the selected label reads as black-on-blue on
+   body copy and on every button fill alike. */
+::selection {
+  background: var(--blue);
+  color: #0f0f0f;
+}
+::-moz-selection {
+  background: var(--blue);
+  color: #0f0f0f;
+}
+
+/* A bare <button>'s selected text takes the button's own colour, ignoring
+   ::selection — so light-on-dark buttons highlight as an unreadable pale blur.
+   Button labels are wrapped in .btn-label spans, which do honour ::selection,
+   giving readable black-on-blue when a button's text is highlighted. */
+.btn-label::selection {
+  background: var(--blue);
+  color: #0f0f0f;
+}
+.btn-label::-moz-selection {
+  background: var(--blue);
+  color: #0f0f0f;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.reveal {
+  animation: reveal var(--slow) var(--ease) backwards;
+  animation-delay: min(calc(var(--i, 0) * 55ms), 330ms);
+}
+
+/* ---------- masthead ---------- */
+
+.yt-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: var(--header-h);
+  padding: 0 20px;
+  /* Translucent rather than opaque, so content passing underneath is felt as
+     a shift in tone instead of disappearing at a hard edge. */
+  background: rgba(15, 15, 15, 0.82);
+  backdrop-filter: blur(14px) saturate(150%);
+  border-bottom: 1px solid transparent;
+  transition:
+    border-color var(--fast) var(--ease),
+    background-color var(--fast) var(--ease);
+}
+
+/* The rule only earns its place once something is actually scrolled under it;
+   at rest the bar should dissolve into the page. */
+.yt-header.is-scrolled {
+  background: rgba(15, 15, 15, 0.92);
+  border-bottom-color: var(--border);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .yt-header,
+  .yt-header.is-scrolled {
+    background: var(--bg);
+  }
+}
+
+.yt-header-start {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.yt-header-mid {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.yt-header-end {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+/* Outlined against filled: the pair reads as secondary-then-primary without
+   needing two different colours in an already red-and-blue masthead. */
+.yt-ghost {
+  height: 36px;
+  padding: 0 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--blue);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  transition:
+    background-color var(--fast) var(--ease),
+    border-color var(--fast) var(--ease);
+}
+
+.yt-ghost:hover {
+  background: rgba(62, 166, 255, 0.12);
+  border-color: rgba(62, 166, 255, 0.4);
+}
+
+.yt-signup {
+  height: 36px;
+  padding: 0 16px;
+  font-size: 0.875rem;
+}
+
+.yt-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color var(--fast) var(--ease);
+}
+
+.yt-icon-btn:hover {
+  background: var(--surface-2);
+}
+
+.yt-icon-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.yt-brand {
+  padding: 0 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Never the filled-pill treatment — the logo is chrome, not a control. */
+.yt-brand:hover,
+.yt-brand:active {
+  background: none;
+}
+
+.yt-brand:focus-visible {
+  outline: 1px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.yt-logo {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.yt-logo-mark {
+  width: 30px;
+  height: 21px;
+  /* Both the mark and the triangle inside it move, so the transform origin has
+     to be the mark's own centre rather than the default box corner. */
+  transform-origin: 50% 50%;
+  transition: transform var(--fast) var(--ease);
+  animation: logo-in var(--slow) var(--ease) backwards;
+}
+
+/* The play triangle "starts playing" on hover: a nudge along its own axis,
+   which is the one gesture the shape already implies. */
+.yt-logo-play {
+  transform-origin: 14px 10px;
+  transition: transform 260ms var(--ease);
+}
+
+.yt-brand:hover .yt-logo-mark {
+  transform: scale(1.06);
+}
+
+.yt-brand:hover .yt-logo-play {
+  transform: translateX(0.9px) scale(1.14);
+}
+
+.yt-brand:active .yt-logo-mark {
+  transform: scale(0.96);
+}
+
+@keyframes logo-in {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+}
+
+.yt-logo-text {
+  font-size: 1.28rem;
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  color: var(--text);
+}
+
+/* The superscript market tag, exactly like YouTube's country/BETA mark. */
+.yt-logo-text sup {
+  margin-left: 1px;
+  font-size: 0.42rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  vertical-align: super;
+}
+
+/* Below this the masthead has to carry nav, search, and both auth buttons.
+   Log in is the one that survives being dropped — Sign up is the primary. */
+@media (max-width: 760px) {
+  .yt-ghost {
+    display: none;
+  }
+}
+
+/* ---------- section nav ---------- */
+
+.yt-body {
+  display: flex;
+  padding-top: var(--header-h);
+  /* Lifted above the ambient glow on body::before, which sits at z-index 0 and
+     would otherwise paint over the content. */
+  position: relative;
+  z-index: 1;
+}
+
+.yt-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.75rem;
+}
+
+.yt-nav-item {
+  display: flex;
+  align-items: center;
+  /* Explicit: the global button rule centres its contents, which would stagger
+     the icon and label apart at different widths. */
+  justify-content: flex-start;
+  gap: 0.5rem;
+  height: 36px;
+  padding: 0 14px;
+  white-space: nowrap;
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  /* Resting items sit one step down in brightness, so the active one reads as
+     selected on contrast alone rather than needing a heavier box. */
+  color: var(--text-2);
+  background: none;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  transition:
+    background-color var(--fast) var(--ease),
+    color var(--fast) var(--ease);
+}
+
+/* Hover is a translucent wash; active is a solid fill. Two different materials,
+   so an active item still visibly responds to the pointer. */
+.yt-nav-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.yt-nav-item.is-active {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.yt-nav-item:focus-visible {
+  outline: 1px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.yt-nav-item .yt-nav-icon {
+  opacity: 0.9;
+}
+
+/* Fixed box so glyphs with different path bounds still align on one axis. */
+.yt-nav-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.yt-nav-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.yt-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 24px;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Below this the labels stop fitting alongside the search pill, so the nav
+   falls back to icons only — still four distinct targets, just narrower. */
+@media (max-width: 1000px) {
+  .yt-nav-item {
+    font-size: 0;
+    padding: 0 10px;
+  }
+  .yt-nav-item .yt-nav-icon {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .yt-main {
+    padding: 16px;
+  }
+  .yt-nav {
+    margin-left: 0.25rem;
+  }
+}
+
+/* ---------- the search pill ---------- */
+
+.search {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  max-width: 640px;
+  height: 40px;
+  background: #121212;
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  /* Not hidden: the suggestion list hangs below the bar and would be clipped
+     by it. Nothing needs the clip — the submit button carries its own right
+     cap (see below) and the input's left end is transparent. */
+  overflow: visible;
+  transition: border-color var(--fast) var(--ease);
+}
+
+/* YouTube moves the border to blue and shifts the magnifier when focused. */
+.search:focus-within {
+  border-color: var(--blue);
+}
+
+.search input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* The left inset has to clear the pill's own curve, not just sit inside the
+     box — at this radius 16px puts the caret on top of the border. */
+  padding: 0 16px 0 20px;
+  font-family: var(--font);
+  font-size: 1rem;
+  color: var(--text);
+  background: none;
+  border: none;
+}
+
+.search input[type="text"]:focus {
+  outline: none;
+}
+
+.search input::placeholder {
+  color: var(--text-3);
+}
+
+.search select {
+  flex: 0 0 auto;
+  align-self: stretch;
+  padding: 0 0.5rem;
+  font-family: var(--font);
+  font-size: 0.8rem;
+  color: var(--text-2);
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.search select:focus-visible {
+  outline: 1px solid var(--blue);
+  outline-offset: -2px;
+}
+
+/* The attached search button — the single most recognisable piece of
+   YouTube's chrome. Wider than it is tall, flat grey, no radius of its own. */
+.search button[type="submit"] {
+  flex: 0 0 64px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  /* height:auto + stretch: the global button rule pins 36px, which leaves the
+     button floating inside a 40/48px bar instead of filling it. */
+  height: auto;
+  align-self: stretch;
+  color: var(--text);
+  background: var(--surface-2);
+  border: none;
+  border-left: 1px solid var(--border);
+  /* Its right side is the pill's right cap, so it carries that curve itself
+     rather than relying on the parent to clip a square corner. */
+  border-radius: 0 999px 999px 0;
+  transition: background-color var(--fast) var(--ease);
+}
+
+.search button[type="submit"]:hover {
+  background: var(--hover);
+}
+
+.search button[type="submit"] svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---------- channel suggestions ---------- */
+
+/* Takes the flex slot the bare input used to hold, so the bar's proportions
+   are unchanged; the input inside it still matches `.search input[type=text]`
+   and keeps its padding and type. */
+.channel-suggest {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.channel-suggest input[type="text"] {
+  width: 100%;
+}
+
+/* Anchored to the input rather than the whole bar, so it lines up under the
+   text and not under the depth selector and button as well — the same place
+   YouTube puts it. */
+.suggest-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  /* Above the results content, below the masthead: the compact search lives in
+     the header, and its list must not paint over the header's own row. */
+  z-index: 40;
+  max-height: 336px;
+  margin: 0;
+  padding: 6px 0;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 50%);
+}
+
+.suggest-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  /* The global button rule pins 36px and centres its content; a row is taller
+     than that and left-aligned. */
+  height: auto;
+  padding: 8px 14px;
+  justify-content: flex-start;
+  font-size: 0.875rem;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* Hover and keyboard highlight are the same state deliberately: with both a
+   pointer and arrow keys in play, two different highlights on screen at once
+   is the confusing part, not the sharing. */
+.suggest-row:hover,
+.is-cursor .suggest-row {
+  background: var(--surface-2);
+}
+
+.suggest-avatar {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  background: var(--surface-2);
+  border-radius: 50%;
+}
+
+.suggest-avatar.is-fallback {
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-2);
+  text-transform: uppercase;
+}
+
+/* min-width: 0 so a long channel name ellipsises instead of pushing the row
+   wider than the list. */
+.suggest-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.suggest-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggest-meta {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+/* Sits over the input's right end, where it cannot be mistaken for part of
+   the text being typed. */
+.suggest-busy {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  color: var(--text-3);
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suggest-busy {
+    animation-duration: 2.4s;
+  }
+}
+
+/* The landing page owns a larger version, centred like YouTube's home. */
+.search.lg {
+  height: 48px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* Taller pill, deeper curve, so it needs a correspondingly deeper inset. */
+.search.lg input[type="text"] {
+  padding-left: 24px;
+  font-size: 1.05rem;
+}
+
+.search select {
+  padding: 0 10px;
+}
+
+/* ---------- buttons ---------- */
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 36px;
+  padding: 0 16px;
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0f0f0f;
+  background: var(--text);
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  transition:
+    background-color var(--fast) var(--ease),
+    opacity var(--fast) var(--ease);
+}
+
+/* The masthead's own buttons are transparent chrome, not filled pills. They
+   set their own background, but this rule outranks them on specificity, so it
+   has to stand aside explicitly. `.plain` is the general form of the same
+   exemption, for anything else that owns its hover. */
+button:hover:not(:disabled):not(.yt-brand):not(.yt-nav-item):not(.yt-icon-btn):not(.yt-ghost):not(.ghost):not(.plain):not(.live-toggle) {
+  background: #d9d9d9;
+}
+
+button:disabled {
+  color: var(--text-3);
+  background: var(--surface-2);
+  cursor: not-allowed;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Secondary: YouTube's grey chip button. */
+button.ghost {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+button.ghost:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+
+.fixer-cta:hover:not(:disabled),
+.fixer-cta:active:not(:disabled),
+.fixer-cta:focus-visible:not(:disabled) {
+  color: #0f0f0f;
+  background: var(--blue);
+}
+
+button.small {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 0.8rem;
+}
+
+/* ---------- landing ---------- */
+
+.hero {
+  padding: 3rem 0 1.75rem;
+  text-align: center;
+  animation: reveal var(--slow) var(--ease);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-2);
+  border-radius: 8px;
+}
+
+.hero h1 {
+  max-width: 20ch;
+  margin: 0 auto 1rem;
+  font-size: clamp(1.9rem, 4.5vw, 3.1rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--red);
+}
+
+.sub {
+  max-width: 46ch;
+  margin: 0 auto 2rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.hero-note {
+  margin: 0.9rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.section {
+  margin-top: 4rem;
+  scroll-margin-top: calc(var(--header-h) + 16px);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.section > h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* Spans the full content column so it lines up with the cards underneath it,
+   rather than breaking early against a measure nothing else on the page shares. */
+.section-lede {
+  margin: 0 0 1.5rem;
+  font-size: 0.925rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+/* ---------- cards ---------- */
+
+/* Two up, like the FAQ. auto-fit fitted three across and left the fourth card
+   stranded on its own row; with exactly four items a 2×2 is the only balanced
+   arrangement. */
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+@media (max-width: 760px) {
+  .check-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.check-card {
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+  transition:
+    background-color var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
+}
+
+.check-card:hover {
+  background: var(--surface-2);
+  transform: translateY(-2px);
+}
+
+.icon-tile {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  color: var(--text);
+  background: var(--surface-2);
+  border-radius: 50%;
+}
+
+.check-card:hover .icon-tile {
+  background: var(--hover);
+}
+
+.icon-tile svg {
+  width: 22px;
+  height: 22px;
+}
+
+.check-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.9rem;
+}
+
+.check-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.check-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+/* ---------- steps ---------- */
+
+.steps {
+  display: grid;
+  gap: var(--gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 16px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-2);
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #0f0f0f;
+  background: var(--text);
+  border-radius: 50%;
+}
+
+.steps li b {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ---------- FAQ ---------- */
+
+/* No max-width: every block on the page spans the same content column, so
+   cards, steps, and accordions share one left and right edge. Line length is
+   controlled on the text inside them instead. */
+.faq {
+  display: grid;
+  /* Two per row. minmax(0,1fr) rather than 1fr so a long unbroken word can't
+     push a column wider than its share. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--gap);
+  /* Critical with the animated panels: without this, grid items stretch to
+     the tallest in the row, so opening one answer would silently inflate the
+     closed card beside it. */
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .faq {
+    grid-template-columns: 1fr;
+  }
+}
+
+.faq details {
+  background: var(--surface);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: background-color var(--fast) var(--ease);
+}
+
+.faq details[open] {
+  background: var(--surface-2);
+}
+
+/* Animated <details>.
+   A native <details> snaps open — there is no height to transition, because
+   the content simply starts existing. ::details-content gives us a box to
+   animate, and interpolate-size lets height go to `auto` instead of a magic
+   pixel number that would clip long answers.
+   Chromium-only today; elsewhere this degrades to the normal instant open,
+   which is exactly the current behaviour, so nothing breaks. */
+.faq details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size 320ms var(--ease),
+    content-visibility 320ms allow-discrete;
+  transition-behavior: allow-discrete;
+}
+
+.faq details[open]::details-content {
+  block-size: auto;
+}
+
+.faq summary {
+  position: relative;
+  padding: 16px 48px 16px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+  transition: background-color var(--fast) var(--ease);
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary:hover {
+  background: var(--surface-2);
+}
+
+.faq summary::after {
+  content: '';
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-2);
+  border-bottom: 2px solid var(--text-2);
+  transform: rotate(45deg);
+  /* Matches the panel's duration so the chevron and the height finish
+     together rather than the arrow snapping ahead of the content. */
+  transition: transform 320ms var(--ease);
+}
+
+.faq details[open] summary::after {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+/* 90ch rather than 70: at this font size 70ch stopped the text around 60% of
+   the card, which read as a layout mistake rather than a reading measure. */
+.faq p {
+  max-width: 90ch;
+  margin: 0;
+  padding: 0 16px 16px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+
+/* ---------- closing CTA ---------- */
+
+.cta-band {
+  margin-top: 4rem;
+  padding: 40px 16px;
+  text-align: center;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.cta-band h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.cta-band p {
+  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.cta-band .search {
+  background: var(--bg);
+}
+
+/* ---------- results ---------- */
+
+.results-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.results-target {
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+/* Score panel, styled like a YouTube Studio analytics card. */
+.score-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.score-card.tone-ok {
+  --tone: var(--ok);
+}
+.score-card.tone-warn {
+  --tone: var(--caution);
+}
+.score-card.tone-bad {
+  --tone: var(--bad);
+}
+
+.score-ring {
+  position: relative;
+  flex: 0 0 auto;
+  width: 120px;
+  height: 120px;
+}
+
+.score-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-track,
+.ring-value {
+  fill: none;
+  stroke-width: 8;
+}
+
+.ring-track {
+  stroke: var(--surface-2);
+}
+
+.ring-value {
+  stroke: var(--tone);
+  stroke-linecap: round;
+  stroke-dashoffset: var(--arc);
+  animation: draw-ring 900ms var(--ease) backwards;
+}
+
+@keyframes draw-ring {
+  from {
+    stroke-dashoffset: 340;
+  }
+}
+
+.ring-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.ring-score {
+  font-size: 2.3rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ring-grade {
+  margin-top: 0.35rem;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #0f0f0f;
+  background: var(--tone);
+  border-radius: 8px;
+}
+
+.score-copy h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.3rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.avatar {
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+/* Shown when the picture won't load; see Avatar.jsx. Sized inline by the
+   component so the circle matches whatever the image would have been. */
+.avatar.is-fallback {
+  display: grid;
+  place-items: center;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+.score-lede {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.score-tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Each tally is a YouTube filter chip. */
+.tally {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border-radius: 8px;
+}
+
+.tally b {
+  font-weight: 500;
+}
+
+.tally.ok b {
+  color: var(--ok);
+}
+.tally.warn b {
+  color: var(--caution);
+}
+.tally.bad b {
+  color: var(--bad);
+}
+
+@media (max-width: 640px) {
+  .score-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  .score-copy h2,
+  .score-tally {
+    justify-content: center;
+  }
+}
+
+/* ---------- stat cards ---------- */
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--gap);
+  margin-top: var(--gap);
+}
+
+.stat {
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--text-2);
+}
+
+.stat-unit {
+  color: var(--text-3);
+}
+
+/* Views moved since the last refresh. Up is the normal case; down happens when
+   YouTube purges views it has decided were not real, so it needs to be legible
+   rather than hidden. */
+.views-gain {
+  color: var(--blue);
+  font-variant-numeric: tabular-nums;
+}
+
+.views-gain.down {
+  color: var(--red);
+}
+
+/* Live counts are wider than compact ones. Reserving the space stops the whole
+   column jumping sideways at the moment the toggle is flipped. */
+.row-label .views.is-live {
+  min-width: 9.5rem;
+  text-align: right;
+}
+
+/* Nine digits where "508M" used to sit. tabular-nums is inherited from
+   .stat-value and is what stops the tile shifting when a new reading lands. */
+.stat-value-live {
+  font-size: 1.15rem;
+  transition: color 0.4s ease;
+}
+
+/* Each digit is its own clipped column, so a digit rolls within its own slot
+   rather than the whole number sliding as a block. Only the columns whose
+   digit changed carry an animating element at all — see RollingNumber.jsx. */
+.roll-number,
+.roll-inner {
+  display: inline-flex;
+  align-items: baseline;
+  /* Without tabular figures the columns would be different widths and the
+     number would jitter sideways as digits change. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* The thousands gap. An empty element with a width, not a space character: a
+   whitespace-only flex item collapses to zero and the grouping vanishes.
+   Deliberately narrower than a word space — this separates places within one
+   number, so anything wider starts reading as two numbers side by side. */
+.roll-sep {
+  display: inline-block;
+  width: 0.18em;
+}
+
+.roll-sign {
+  margin-right: 0.06em;
+}
+
+.roll-cell {
+  display: inline-block;
+  /* Matches .stat-value's line-height, so the clip lands exactly on the line
+     box and the digit is hidden the moment it leaves its slot. `clip` rather
+     than `hidden` because `hidden` would make every column a scroll
+     container. */
+  height: 1.2em;
+  overflow: clip;
+}
+
+/* The direction lives on the digit, not on the number. Setting animation-name
+   from an ancestor would rewrite it for every digit the moment the count
+   changed direction, and a changed animation-name restarts the animation — so
+   one downward tick would roll the entire number. */
+.roll-digit {
+  display: block;
+  animation-duration: 260ms;
+  animation-timing-function: var(--ease);
+}
+
+.roll-digit.roll-up {
+  animation-name: roll-up;
+}
+
+.roll-digit.roll-down {
+  animation-name: roll-down;
+}
+
+@keyframes roll-up {
+  from {
+    transform: translateY(0.8em);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes roll-down {
+  from {
+    transform: translateY(-0.8em);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* A counter that re-rolls every second is the worst case for motion
+   sensitivity, so this one drops to a plain fade rather than a shortened
+   slide. */
+@media (prefers-reduced-motion: reduce) {
+  .roll-digit {
+    animation: none;
+  }
+}
+
+/* The counter holds still for hours, so a change is the whole event and has to
+   survive not being watched at the moment it happens — hence a four-second
+   hold rather than a blink. */
+.stat-value-live.just-changed {
+  color: var(--accent);
+  animation: sub-bump 0.5s ease;
+}
+
+@keyframes sub-bump {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-value-live.just-changed {
+    animation: none;
+  }
+}
+
+/* Names the rounding band, so the trailing zeros aren't read as counted. */
+.stat-est {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* Sits under a stat label rather than in the chart legend, so it has to be
+   quieter and sit on its own line. */
+.live-toggle.tiny {
+  /* flex + fit-content rather than inline-flex: this needs its own line under
+     the label, but must not stretch to the tile's full width. */
+  display: flex;
+  width: fit-content;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+}
+
+/* In the legend the pill is a peer of the chips, not something stacked under a
+   label, so the stat-tile offset has to come back off. */
+.legend .live-toggle.tiny {
+  align-self: center;
+  margin-top: 0;
+}
+
+/* Two colours, nothing else: grey when off, blue when on. No fill, no border,
+   no padding — with no box there is no surface behind the text to go dark, and
+   the control is just its label and dot. `plain` on the element is what keeps
+   the global filled-button hover from painting one back in. */
+.live-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: auto;
+  padding: 0;
+  font: inherit;
+  color: var(--text-2);
+  background: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.live-toggle:hover,
+.live-toggle:active,
+.live-toggle.is-on {
+  color: var(--blue);
+}
+
+/* The dot takes the button's own colour, so the two never disagree. */
+.live-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background: currentcolor;
+  border-radius: 50%;
+  /* Decorative and aria-hidden, so it has no business being selectable. Left
+     selectable it highlights as the pale blur described at the top of this
+     file — a bare element inside a button ignores ::selection and takes the
+     button's own colour, which reads as a white box behind the dot. */
+  user-select: none;
+}
+
+/* Only the active state pulses. A blinking dot on an idle button reads as a
+   status indicator for something that isn't running. */
+.live-toggle.is-on .live-dot {
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-toggle.is-on .live-dot {
+    animation: none;
+  }
+}
+
+/* ---------- checklist ---------- */
+
+.checklist {
+  display: grid;
+  gap: var(--gap);
+  margin-top: var(--gap);
+}
+
+.check-group {
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+  animation: reveal var(--slow) var(--ease) backwards;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+.check-group h3 {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.check {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.check:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.check-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0f0f0f;
+  border-radius: 50%;
+}
+
+.is-pass .check-icon {
+  background: var(--ok);
+}
+.is-warn .check-icon {
+  background: var(--caution);
+}
+.is-fail .check-icon {
+  background: var(--bad);
+}
+.is-skip .check-icon {
+  color: var(--text-3);
+  background: var(--surface-2);
+}
+
+.check-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.check-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+
+.check-label {
+  font-size: 0.925rem;
+  font-weight: 500;
+}
+
+.check-detail {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.is-skip .check-label,
+.is-skip .check-detail {
+  color: var(--text-3);
+}
+
+/* One line, always. The 70ch cap used to wrap this onto two rows even in a
+   wide column, which made a short instruction look like a paragraph and gave
+   every failing check an uneven height.
+   Where the column really is too narrow the line ellipses rather than wraps;
+   the full text stays reachable via the title attribute set in Score.jsx. */
+.check-fix {
+  margin: 0.3rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- inline fixer ---------- */
+
+.fixer {
+  margin-top: 10px;
+}
+
+.fixer-busy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+.fixer-error {
+  margin: 8px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--bad);
+  white-space: pre-wrap;
+}
+
+.fixer-draft {
+  max-width: 720px;
+  margin-top: 10px;
+  animation: reveal 320ms var(--ease);
+}
+
+.fixer-draft textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: var(--font);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  resize: vertical;
+}
+
+.fixer-draft textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+.fixer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.fixer-count {
+  margin-right: auto;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fixer-count.ok {
+  color: var(--ok);
+}
+.fixer-count.short {
+  color: var(--caution);
+}
+
+.fixer-hint {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
+/* ---------- chart ---------- */
+
+.chart {
+  margin: var(--gap) 0 0;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.chart figcaption h2 {
+  margin: 0 0 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.chart-sub {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  color: var(--text-2);
+}
+
+/* Legend entries are chips, matching the filter row on YouTube's home. */
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 5px 10px;
+  background: var(--surface-2);
+  border-radius: 8px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.swatch.above {
+  background: var(--above);
+}
+.swatch.below {
+  background: var(--below);
+}
+.swatch.recent {
+  background: var(--below);
+  opacity: 0.35;
+}
+
+.plot {
+  position: relative;
+}
+
+.baseline {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+
+.row {
+  position: relative;
+  padding: 0.28rem 0;
+  border-radius: 6px;
+  transition: background-color var(--fast) var(--ease);
+}
+
+.row:hover {
+  background: var(--surface-2);
+}
+
+.bar-track {
+  position: relative;
+  height: 14px;
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--surface);
+  animation: grow-bar var(--slow) var(--ease) backwards;
+  animation-delay: min(calc(var(--i, 0) * 9ms), 600ms);
+}
+
+@keyframes grow-bar {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.bar.above {
+  background: var(--above);
+  transform-origin: left;
+}
+
+.bar.below {
+  background: var(--below);
+  transform-origin: right;
+}
+
+.row.is-recent .bar {
+  opacity: 0.35;
+}
+
+.row-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.1rem;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.row-label .mult {
+  flex: 0 0 3.1rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.row-label .title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.row-label .views {
+  flex: 0 0 auto;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.table-view {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.table-view summary {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.table-view table {
+  width: 100%;
+  margin-top: 0.8rem;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.table-view th,
+.table-view td {
+  padding: 0.45rem 0.5rem 0.45rem 0;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-view th {
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.table-view td:nth-child(n + 2) {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- report ---------- */
+
+.report-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  margin-top: var(--gap);
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.report-cta h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.report-cta p {
+  max-width: 56ch;
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 12px;
+}
+
+.writing-note {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+/* No inner scroll: the report runs its full length as one block, so the whole
+   thing reads in a single flow and Ctrl+F, print and select-all reach all of
+   it. A box that scrolls inside a page that also scrolls makes the reader
+   choose which scrollbar they meant. */
+.report {
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.report > :first-child {
+  margin-top: 0;
+}
+
+.report h1,
+.report h2,
+.report h3 {
+  margin: 1.75rem 0 0.6rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.report h3 {
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.report p {
+  margin: 0 0 1rem;
+}
+
+.report ul,
+.report ol {
+  margin: 0 0 1rem;
+  padding-left: 1.3rem;
+}
+
+.report li {
+  margin-bottom: 0.5rem;
+}
+
+.report li::marker {
+  color: var(--text-3);
+}
+
+.report strong {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.report hr {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.report blockquote {
+  margin: 0 0 1rem;
+  padding-left: 1rem;
+  color: var(--text-2);
+  border-left: 3px solid var(--border);
+}
+
+.report table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+
+.report th,
+.report td {
+  padding: 0.55rem 0.7rem 0.55rem 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.report th {
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.cursor {
+  display: inline-block;
+  width: 7px;
+  height: 1.05em;
+  vertical-align: text-bottom;
+  background: var(--red);
+  animation: blink 1s steps(2) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---------- states ---------- */
+
+.loading-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.loading-card b {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.loading-card p {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-card .spinner {
+  width: 22px;
+  height: 22px;
+  color: var(--red);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.banner {
+  margin: var(--gap) 0;
+  padding: 16px;
+  font-size: 0.875rem;
+  background: var(--surface);
+  border-radius: 12px;
+}
+
+.banner.error {
+  border-left: 4px solid var(--bad);
+}
+
+.banner.error strong {
+  color: var(--bad);
+}
+
+.banner pre {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.banner button {
+  margin-top: 12px;
+}
+
+code {
+  padding: 0.12em 0.4em;
+  font-family: var(--mono);
+  font-size: 0.87em;
+  background: var(--surface-2);
+  border-radius: 4px;
+}
+
+/* ---------- footer ---------- */
+
+/* The rule and the text both span the full content column, so the note lines
+   up edge to edge with the cards above it. */
+footer {
+  margin-top: 3rem;
+  /* Trailing space below the text too, so the last line has somewhere to sit
+     instead of ending flush against the bottom of the page. */
+  padding: 1.25rem 0 2.5rem;
+  border-top: 1px solid var(--border);
+}
+
+footer p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* ---------- video detail panel ---------- */
+
+/* The label became the control when rows turned clickable; it has to shed the
+   global button chrome and keep the grid alignment it had as a div. */
+.row-label.plain {
+  width: 100%;
+  height: auto;
+  padding: 2px 4px;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.row-label.plain:hover {
+  background: var(--surface-2);
+}
+
+.row-chevron {
+  flex: 0 0 auto;
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+
+.row.is-open .row-label.plain {
+  background: var(--surface-2);
+}
+
+.video-panel {
+  margin: 0.5rem 0 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.video-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* 16:9 with object-fit rather than the raw file's shape: mqdefault is 320x180
+   for widescreen uploads but letterboxed 4:3 for older ones, and cropping is
+   what keeps a column of panels from having thumbnails of two different
+   heights. The surface colour underneath stands in while it loads. */
+.video-thumb {
+  flex: 0 0 auto;
+  width: 120px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--surface-2);
+  border-radius: 8px;
+}
+
+/* min-width: 0 so a long title wraps inside the flex row instead of forcing
+   the head wider than the panel. */
+.video-panel-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.video-panel-title h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.video-panel-title p {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+.video-flag {
+  color: var(--caution);
+}
+
+.video-panel-close {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 0.875rem;
+  color: var(--text-2);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.video-panel-close:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* auto-fit rather than a fixed count: eight facts should reflow to two rows on
+   a narrow column instead of scrolling sideways. */
+.video-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.video-facts dt {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+
+.video-facts dd {
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.video-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.video-tags li {
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  color: var(--text-2);
+  background: var(--bg);
+  border-radius: 10px;
+}
+
+.video-tags .more {
+  color: var(--text-3);
+}
+
+.video-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.video-watch {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface-2);
+  border-radius: 16px;
+}
+
+.video-watch:hover {
+  background: var(--hover);
+}
+
+/* white-space: pre-line keeps the model's paragraph breaks between the VERDICT
+   / WHY / WHAT TO DO sections without running it through a markdown parser. */
+.video-analysis {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-2);
+  white-space: pre-line;
+}
+
+/* ---------- title rewriter ---------- */
+
+/* Hidden until the row is touched: every below-median row carries one, and a
+   column of always-visible buttons would compete with the bars for attention.
+   :focus-within keeps it reachable by keyboard, where there is no hover. */
+.row-fix {
+  flex: 0 0 auto;
+  margin-left: 0.5rem;
+  padding: 0 8px;
+  height: 24px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--blue);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+
+.row:hover .row-fix,
+.row:focus-within .row-fix,
+.row.is-open .row-fix {
+  opacity: 1;
+}
+
+.row-fix:hover {
+  background: rgba(62, 166, 255, 0.12);
+  border-color: rgba(62, 166, 255, 0.4);
+}
+
+/* Touch has no hover, so the button would never appear. */
+@media (hover: none) {
+  .row-fix {
+    opacity: 1;
+  }
+}
+
+.title-fixer {
+  margin: 0.5rem 0 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.title-fixer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.title-fixer-label {
+  display: block;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+
+.title-fixer-current {
+  margin: 0.15rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.title-fixer-close {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 0.875rem;
+  color: var(--text-2);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.title-fixer-close:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.title-options {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title-options li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.title-option-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+
+/* Same 60-character rule the title check grades against, so the number here
+   and the checklist verdict can't disagree. */
+.title-option-count {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.title-option-count.ok {
+  color: var(--ok);
+}
+
+.title-option-count.short {
+  color: var(--caution);
+}
+
+@media (max-width: 640px) {
+  .title-options li {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- recent audits, landing page ---------- */
+
+.recent-strip {
+  max-width: 640px;
+  margin: 1.5rem auto 0;
+}
+
+.recent-strip-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  text-align: center;
+}
+
+/* Wraps rather than scrolls: the list is capped at 12, and a hidden
+   horizontal scroller under the hero is a row people never discover. */
+.recent-strip ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recent-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  transition: border-color var(--fast) var(--ease);
+}
+
+.recent-chip:hover {
+  border-color: var(--hover);
+}
+
+.recent-chip {
+  animation: chip-in var(--fast) var(--ease) both;
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.recent-chip.recent-more {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  cursor: default;
+}
+
+.recent-chip.recent-more:hover {
+  border-color: var(--border);
+}
+
+.recent-more-text {
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+.recent-chip > button:first-child {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 38px;
+  /* Right padding leaves room for the remove control to sit over the chip
+     without the label reflowing when it appears. */
+  padding: 0 2rem 0 5px;
+  font-size: 0.875rem;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.recent-avatar {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.recent-avatar.is-fallback {
+  display: grid;
+  place-items: center;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+.recent-name {
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-grade {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.recent-remove {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 0.6875rem;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--fast) var(--ease);
+}
+
+.recent-chip:hover .recent-remove,
+.recent-chip:focus-within .recent-remove {
+  opacity: 1;
+}
+
+.recent-remove:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+@media (hover: none) {
+  .recent-remove {
+    opacity: 1;
+  }
+}
+
+/* ---------- report sidebar ---------- */
+
+.yt-sidebar {
+  position: sticky;
+  /* Sticks below the fixed masthead and scrolls its own overflow, so a long
+     history never pushes the page taller than the report beside it. */
+  top: var(--header-h);
+  align-self: flex-start;
+  flex: 0 0 var(--sidebar-w);
+  width: var(--sidebar-w);
+  max-height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  padding: 12px 8px;
+}
+
+.side-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color var(--fast) var(--ease);
+}
+
+.side-item:hover {
+  background: var(--surface-2);
+}
+
+.side-item.is-active {
+  background: var(--hover);
+  font-weight: 500;
+}
+
+/* A history row is two controls sharing one strip: the channel, and the
+   remove. The wrapper carries the hover and active states that used to sit on
+   the button, so both children light the same row. */
+.side-row {
+  position: relative;
+  border-radius: 10px;
+}
+
+.side-row:hover,
+.side-row:focus-within {
+  background: var(--surface-2);
+}
+
+.side-row.is-active {
+  background: var(--hover);
+}
+
+.side-row.is-active .side-item {
+  font-weight: 500;
+}
+
+/* Transparent so the wrapper's state shows through — otherwise the button
+   would paint its own hover on top and the row would look striped. */
+.side-row .side-item,
+.side-row .side-item:hover {
+  background: none;
+}
+
+.side-remove {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--text-2);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+
+.side-row:hover .side-remove,
+.side-row:focus-within .side-remove {
+  opacity: 1;
+}
+
+.side-remove:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+/* The grade sits where the remove appears, so it steps aside on hover rather
+   than the row reflowing to fit both. */
+.side-row:hover .side-grade,
+.side-row:focus-within .side-grade {
+  opacity: 0;
+}
+
+/* Touch has no hover, so the control would be unreachable. */
+@media (hover: none) {
+  .side-remove {
+    opacity: 1;
+  }
+
+  .side-row .side-grade {
+    display: none;
+  }
+}
+
+.side-icon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.side-avatar {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.side-avatar.is-fallback {
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+/* The row is fixed-width, so the name is what has to give. */
+.side-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.side-grade {
+  flex: 0 0 auto;
+  padding: 0 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+
+.side-grade.tone-ok {
+  color: var(--ok);
+}
+
+.side-grade.tone-warn {
+  color: var(--caution);
+}
+
+.side-grade.tone-bad {
+  color: var(--bad);
+}
+
+/* The signed-out stand-in for the history list. Quiet on purpose — it sits in
+   the rail beside the report, not in front of it. */
+.side-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0 12px;
+}
+
+.side-locked p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.side-locked span {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+
+.side-rule {
+  margin: 12px 8px;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.side-heading {
+  margin: 0 0 4px;
+  padding: 0 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Below this the rail and the report can't both hold their width, and the
+   report is the reason you're here. The compact search in the masthead is
+   still the way to reach another channel. */
+@media (max-width: 1000px) {
+  .yt-sidebar {
+    display: none;
+  }
+}
+
+/* Sits where the avatar does in a history row, so the two lists align even
+   though one shows channel pictures and the other a star. */
+.side-star {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font-size: 0.8125rem;
+  color: var(--caution);
+}
+
+.save-btn {
+  margin-left: auto;
+}
+
+/* Favourited is the one state here that fills. Black type needs a light
+   surface under it, so the fill and the black arrive together rather than the
+   label being darkened against the ghost button's dark background. */
+.save-btn.is-saved {
+  color: #0f0f0f;
+  background: var(--text);
+  border-color: var(--text);
+}
+
+/* The glyph sits tight against its own box, so the word needs a little air
+   beyond the plain space between them. */
+.fav-heart {
+  margin-right: 0.15rem;
+}
+
+/* The heart is the only colour in the button, and only once it is on — the
+   outline heart inherits the label so the off state stays monochrome. */
+.save-btn.is-saved .fav-heart {
+  color: var(--red);
+}
+
+/* ---------- signed-out gate ---------- */
+
+.lock-icon {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.12em;
+  margin-right: 0.4rem;
+  opacity: 0.7;
+}
+
+.locked-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  /* Dashed, unlike every other card here: it reads as a placeholder for
+     something absent rather than as content in its own right. */
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.locked-copy {
+  min-width: min(100%, 260px);
+  flex: 1;
+}
+
+.locked-card h3 {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.locked-card p {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.locked-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.locked-login {
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.locked-login:hover {
+  color: var(--text);
+}
+
+/* Shared by the chart and the checklist: gated content keeps its full height
+   rather than collapsing, because how far the blur runs is itself the argument
+   for signing up. */
+.gated {
+  position: relative;
+}
+
+.gated-rows {
+  filter: blur(5px);
+  opacity: 0.55;
+  /* Stops hover, tooltips and text selection reaching through the blur. */
+  pointer-events: none;
+  user-select: none;
+}
+
+.gate-lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: clamp(1rem, 8%, 3.5rem);
+  text-align: center;
+  background: linear-gradient(
+    to bottom,
+    rgb(15 15 15 / 25%) 0%,
+    rgb(15 15 15 / 80%) 30%,
+    rgb(15 15 15 / 94%) 100%
+  );
+}
+
+.gate-lock p {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .locked-actions {
+    width: 100%;
+  }
+
+  .locked-actions button:first-child {
+    flex: 1;
+  }
+}
+
+/* ---------- account menu ---------- */
+
+.yt-user {
+  position: relative;
+}
+
+.yt-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.yt-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.yt-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  padding: 0.5rem 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 32px rgb(0 0 0 / 50%);
+  z-index: 60;
+}
+
+.yt-menu-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.yt-menu-head span {
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  /* Long addresses would otherwise stretch the menu across the masthead. */
+  overflow-wrap: anywhere;
+}
+
+.yt-menu button {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.yt-menu button:hover {
+  background: var(--surface-2);
+}
+
+.yt-signout {
+  color: #e02424;
+}
+
+.yt-signout:hover {
+  background: rgba(224, 36, 36, 0.1);
+  color: #e02424;
+}
+
+/* ---------- auth dialog ---------- */
+
+.auth-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 70%);
+  z-index: 100;
+  animation: fade-in var(--fast) var(--ease);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.auth-panel {
+  position: relative;
+  width: min(100%, 400px);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.auth-panel h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.375rem;
+}
+
+.auth-sub {
+  margin: 0 0 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.auth-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--text-2);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.auth-close:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.auth-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  height: 42px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 21px;
+  cursor: pointer;
+  transition: background-color var(--fast) var(--ease);
+}
+
+.auth-google:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.auth-google svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* A rule with the word centred on it, drawn as two lines so it works on any
+   panel width without a fixed rule length. */
+.auth-or {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+.auth-or::before,
+.auth-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+
+.auth-field input {
+  height: 42px;
+  padding: 0 0.875rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color var(--fast) var(--ease);
+}
+
+.auth-field input:focus {
+  border-color: var(--blue);
+  outline: none;
+}
+
+.auth-error {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  color: var(--bad);
+}
+
+.auth-submit {
+  width: 100%;
+  height: 42px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-radius: 21px;
+}
+
+.auth-panel button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-switch {
+  margin: 1.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  text-align: center;
+}
+
+.auth-switch button {
+  font: inherit;
+  font-weight: 500;
+  color: var(--blue);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
