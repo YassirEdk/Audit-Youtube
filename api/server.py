@@ -111,6 +111,14 @@ def health() -> dict:
         "llm_ok": llm_ok,
         "llm_detail": llm_detail,
         "provider": llm.active_provider(),
+        # Whether the server can verify a signed-in caller at all. False means
+        # SUPABASE_URL / SUPABASE_ANON_KEY are missing *on the server*, and
+        # every request reads as anonymous no matter who is logged in — which
+        # surfaces to the user as "Sign in to use this" while already signed
+        # in. Worth reporting: it is otherwise invisible from the browser, and
+        # it is a different pair of variables from the VITE_ ones the frontend
+        # needs.
+        "auth_ok": authz.is_enforceable(),
     }
 
 
