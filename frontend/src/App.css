@@ -516,12 +516,26 @@ body::before {
      by it. Nothing needs the clip — the submit button carries its own right
      cap (see below) and the input's left end is transparent. */
   overflow: visible;
-  transition: border-color var(--fast) var(--ease);
+  transition:
+    border-color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease),
+    background-color var(--fast) var(--ease);
 }
 
-/* YouTube moves the border to blue and shifts the magnifier when focused. */
+/* Lifts slightly before you commit to clicking — the bar is the one thing on
+   this page a visitor is meant to touch, so it answers the pointer. */
+.search:hover {
+  border-color: #454545;
+}
+
+/* YouTube moves the border to blue when focused. The ring is ours: at this
+   border width alone the focus state is a one-pixel colour change, which is
+   easy to miss on a dark background and fails as the only cue for anyone
+   navigating by keyboard. Blue at 18% reads as a glow rather than an outline,
+   so it doesn't compete with the suggestion list dropping below it. */
 .search:focus-within {
   border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgb(62 166 255 / 18%);
 }
 
 .search input[type="text"] {
@@ -541,26 +555,86 @@ body::before {
   outline: none;
 }
 
+/* One step brighter than --text-3 (#717171), which sits at roughly 3.5:1 on
+   this background — under the 4.5:1 that body text needs and genuinely hard to
+   read at a glance. This clears it while staying clearly secondary to a typed
+   value.
+
+   Fading on focus is deliberate: once the caret is in the field the hint has
+   done its job, and leaving it at full strength competes with what you type. */
 .search input::placeholder {
+  color: #8f8f8f;
+  transition: color var(--fast) var(--ease);
+}
+
+.search input:focus::placeholder {
   color: var(--text-3);
 }
 
+/* The native chevron is replaced with an inline SVG for one reason: its size
+   and colour are the platform's, so on Windows it rendered as a heavy black
+   arrow against the grey divider and read as a different control from the
+   magnifier beside it. This one inherits the row's own palette. */
 .search select {
   flex: 0 0 auto;
   align-self: stretch;
-  padding: 0 0.5rem;
+  appearance: none;
+  padding: 0 1.7rem 0 0.7rem;
   font-family: var(--font);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-2);
   background: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 12px;
   border: none;
   border-left: 1px solid var(--border);
   cursor: pointer;
+  transition: color var(--fast) var(--ease);
+}
+
+.search select:hover {
+  color: var(--text);
+}
+
+/*
+ * The options need their own colours, and this is not cosmetic.
+ *
+ * An <option> inherits its colour from the <select>, which is --text-2 (#aaa)
+ * here so the closed control reads as secondary next to the input. But the
+ * open list is drawn by the OS, and on Windows that panel is white — so the
+ * rows rendered light grey on white and were effectively invisible. Only the
+ * highlighted row survived, because the system overrides both colours for the
+ * selection.
+ *
+ * Stating background and colour together is what fixes it: neither alone is
+ * enough, since the platform supplies whichever one you leave out and the pair
+ * has to be legible against each other rather than against this stylesheet's
+ * assumptions.
+ */
+.search select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* The locked depths are not disabled — choosing one opens the sign-up dialog,
+   which is the whole point (a disabled <option> can't explain why it won't
+   respond). They're dimmed to say "costs an account", not "unavailable", and
+   they have to stay clearly readable to say it. */
+.search select option:disabled {
+  color: var(--text-2);
 }
 
 .search select:focus-visible {
   outline: 1px solid var(--blue);
   outline-offset: -2px;
+}
+
+/* The chevron sits on the other side when the bar is mirrored. */
+[dir="rtl"] .search select {
+  padding: 0 0.7rem 0 1.7rem;
+  background-position: left 0.6rem center;
 }
 
 /* The attached search button — the single most recognisable piece of
@@ -586,6 +660,13 @@ body::before {
 
 .search button[type="submit"]:hover {
   background: var(--hover);
+}
+
+/* Focus lands inside the button rather than around it — an outline on the
+   outside would be clipped by the pill's end cap on three sides. */
+.search button[type="submit"]:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -3px;
 }
 
 .search button[type="submit"] svg {
@@ -730,8 +811,20 @@ body::before {
   font-size: 1.05rem;
 }
 
-.search select {
-  padding: 0 10px;
+/* Scoped to .lg, which is what it was always for — it sits in the .lg block but
+   was written unscoped, so being later in the file it silently set the padding
+   for every search bar on the page, including the compact one in the masthead.
+   The right-hand value keeps the chevron's track clear. */
+/* The large bar is 8px taller, so the select gets a little more room than the
+   compact one — but not more type: the depth picker is a secondary control and
+   should stay quieter than the field it sits beside. */
+.search.lg select {
+  padding: 0 1.85rem 0 0.85rem;
+  font-size: 0.78rem;
+}
+
+[dir="rtl"] .search.lg select {
+  padding: 0 0.85rem 0 1.85rem;
 }
 
 /* ---------- buttons ---------- */
@@ -3741,13 +3834,33 @@ footer p {
   margin-right: 1px;
 }
 
-/* The search field's internal dividers sit between the input, the depth select
-   and the submit button — the divider has to move to whichever edge now faces
-   the input. */
+/*
+ * The search bar, mirrored properly.
+ *
+ * Three separate things have to move, and only the first is obvious:
+ *
+ *   1. Order. Flex reverses on its own, so the magnifier leads and the input
+ *      trails — nothing to do.
+ *   2. Shape. The submit button carries the pill's end cap as its own
+ *      border-radius rather than letting the parent clip it, so a reversed row
+ *      put a rounded cap in the middle of the bar and a square corner at the
+ *      edge. The cap has to swap ends with the button.
+ *   3. Direction of the *contents*, which is the part that looked like
+ *      scrambled text rather than a layout bug. See the input rule below.
+ */
 [dir="rtl"] .search select,
 [dir="rtl"] .search button[type="submit"] {
   border-left: 0;
   border-right: 1px solid var(--border);
+}
+
+/* The cap moves to the left edge, which is now the end of the bar. */
+[dir="rtl"] .search button[type="submit"] {
+  border-radius: 999px 0 0 999px;
+}
+
+[dir="rtl"] .search input[type="text"] {
+  padding: 0 20px 0 16px;
 }
 
 [dir="rtl"] .search.lg input[type="text"] {
@@ -3755,14 +3868,35 @@ footer p {
   padding-right: 24px;
 }
 
+/*
+ * `plaintext` is what fixes "youtube.com/@channel@".
+ *
+ * The field holds a handle or a URL — Latin — but sits in an RTL paragraph, so
+ * the bidi algorithm was moving each run's punctuation to the far end: the "@"
+ * jumped past "channel", and a typed "@mkbhd" would put its "@" on the wrong
+ * side as you typed.
+ *
+ * `unicode-bidi: plaintext` gives each value its own direction, taken from its
+ * first strong character — exactly the rule a chat client uses per message. A
+ * Latin handle renders left-to-right, an Arabic channel name right-to-left,
+ * and neither needs the box to stop being mirrored.
+ */
+[dir="rtl"] .search input[type="text"] {
+  unicode-bidi: plaintext;
+}
+
 [dir="rtl"] .suggest-busy {
   right: auto;
   left: 12px;
 }
 
-/* The +/− affordance on a details element, and the tick on the CTA list: both
-   are drawn from rotated borders, so mirroring means moving the element *and*
-   swapping which border carries the colour. */
+/* Suggestions are channel names from YouTube, so each row gets the same
+   per-value direction treatment as the field that produced it. */
+[dir="rtl"] .suggest-title,
+[dir="rtl"] .suggest-meta {
+  unicode-bidi: plaintext;
+}
+
 [dir="rtl"] .faq summary::after {
   right: auto;
   left: 20px;
@@ -3862,9 +3996,45 @@ footer p {
   direction: ltr;
 }
 
-/* Latin-script text inside an Arabic sentence — a channel handle, a provider
-   name — keeps its own direction so punctuation lands at the correct end. */
+/*
+ * User-supplied and Latin-script text, isolated rather than pinned.
+ *
+ * These carry names this app didn't write — channel titles, video titles,
+ * handles, the LLM provider's name — and any of them can be Arabic, Latin, or
+ * both in one string. `unicode-bidi: isolate` is the right tool for that and
+ * `direction: ltr` is not: isolation lets each run render in its own direction
+ * inside the mirrored layout, so an Arabic channel name still reads
+ * right-to-left while "youtube.com/@x" keeps its slashes and dots in place.
+ *
+ * Without it, a title ending in "(2024)" renders as "(2024" with the bracket
+ * orphaned at the far end of the line — the same class of bug as the search
+ * placeholder, and the one people report as "the text is scrambled".
+ */
 [dir="rtl"] .results-target,
-[dir="rtl"] .scorecard-earns {
+[dir="rtl"] .scorecard-earns,
+[dir="rtl"] .check-detail,
+[dir="rtl"] .row-label .title,
+[dir="rtl"] .recent-name,
+[dir="rtl"] .side-item,
+[dir="rtl"] .score-copy h2,
+[dir="rtl"] .video-panel-title,
+[dir="rtl"] .recent-strip-title {
   unicode-bidi: isolate;
+}
+
+/*
+ * The guide list is pinned LTR, not isolated.
+ *
+ * Unlike the fields above, its content is known and entirely English — the
+ * eight guide pages have no translations, and the link labels stay English
+ * with an explicit "in English" note beside them. A row that is English text,
+ * an English destination and a "→" affordance belongs in English reading
+ * order; mirroring it would put the arrow on the left of a left-to-right
+ * sentence.
+ *
+ * If the guides are ever translated, delete this rule — it stops being true
+ * the moment the labels stop being English.
+ */
+[dir="rtl"] .guide-links {
+  direction: ltr;
 }

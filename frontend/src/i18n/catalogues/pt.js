@@ -53,7 +53,7 @@ export const pt = {
   'landing.hero.note': 'Funciona em qualquer canal público — inclusive nos dos seus concorrentes.',
 
   // ---------- landing: the search form ----------
-  'landing.form.placeholder': 'Nome do canal   ·   @arroba   ·   youtube.com/@canal',
+  'landing.form.placeholder': 'Nome do canal, @handle ou URL',
   'landing.form.ariaChannel': 'Nome, arroba ou ID do canal do YouTube',
   'landing.form.ariaDepth': 'Quantos vídeos recentes analisar',
   'landing.form.videos': '{n} vídeos',

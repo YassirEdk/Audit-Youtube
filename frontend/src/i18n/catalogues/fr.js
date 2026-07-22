@@ -52,7 +52,7 @@ export const fr = {
   'landing.hero.note': 'Fonctionne sur toute chaîne publique — y compris celles de vos concurrents.',
 
   // ---------- landing: the search form ----------
-  'landing.form.placeholder': 'Nom de chaîne   ·   @identifiant   ·   youtube.com/@chaine',
+  'landing.form.placeholder': 'Nom de la chaîne, @handle ou URL',
   'landing.form.ariaChannel': "Nom, identifiant ou ID de la chaîne YouTube",
   'landing.form.ariaDepth': 'Nombre de vidéos récentes à analyser',
   'landing.form.videos': '{n} vidéos',

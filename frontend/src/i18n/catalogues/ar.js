@@ -50,8 +50,10 @@ export const ar = {
     'درجة صحة من 100 مبنية على أربعة عشر فحصاً آلياً، وتقييم لكل فيديو حديث بالمقارنة مع متوسط قناتك نفسها، وتحليل مكتوب لما ينبغي إصلاحه أولاً.',
   'landing.hero.note': 'يعمل مع أي قناة عامة — بما في ذلك قنوات منافسيك.',
 
-  // ---------- landing: the search form ----------
-  'landing.form.placeholder': 'اسم القناة   ·   @handle   ·   youtube.com/@channel',
+  // @handle stays wrapped in U+2066/U+2069 isolates: it is an ASCII
+  // token inside an Arabic line, and without them the '@' migrates to
+  // the far end of the run.
+  'landing.form.placeholder': 'اسم القناة أو ⁦@handle⁩ أو رابط',
   'landing.form.ariaChannel': 'اسم قناة YouTube أو المعرّف أو الرقم التعريفي',
   'landing.form.ariaDepth': 'عدد الفيديوهات الحديثة المراد تحليلها',
   'landing.form.videos': '{n} فيديو',
