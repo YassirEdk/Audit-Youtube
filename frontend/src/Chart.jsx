@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react'
+import { useI18n } from './i18n/index.jsx'
 import { Gated } from './Locked.jsx'
 import { RollingNumber } from './RollingNumber.jsx'
 import { useLiveSubscribers } from './useLiveSubscribers.js'
@@ -19,6 +20,10 @@ function compact(n) {
 }
 
 export function StatRow({ data }) {
+  // formatNumber, not toLocaleString: the rounding step is grouped with the
+  // locale's own separator rather than the browser's, so it matches the
+  // subscriber count sitting directly above it.
+  const { t, formatNumber } = useI18n()
   const { channel, baseline_views, share_above, best_multiple, analyzed } = data
   // Off by default, like the chart's toggle: compact reads better at a glance,
   // and the exact figure only earns its width once someone has asked to watch
@@ -30,33 +35,50 @@ export function StatRow({ data }) {
     live,
   )
 
+  // `id` rather than the label as the React key: the label is translated now,
+  // and keying on it would remount all four tiles on a language switch.
   const tiles = [
-    { label: 'Subscribers', value: compact(channel.subscribers), live: true },
-    { label: 'Typical video', value: compact(baseline_views), unit: 'views' },
-    { label: 'Beat that bar', value: `${share_above}%`, unit: `of ${analyzed}` },
-    { label: 'Best video', value: `${best_multiple}×`, unit: 'baseline' },
+    { id: 'subs', label: t('stats.subscribers'), value: compact(channel.subscribers), live: true },
+    {
+      id: 'typical',
+      label: t('stats.typical'),
+      value: compact(baseline_views),
+      unit: t('stats.typicalUnit'),
+    },
+    {
+      id: 'beat',
+      label: t('stats.beat'),
+      value: `${share_above}%`,
+      unit: t('stats.beatUnit', { n: analyzed }),
+    },
+    {
+      id: 'best',
+      label: t('stats.best'),
+      value: `${best_multiple}×`,
+      unit: t('stats.bestUnit'),
+    },
   ]
   return (
     <div className="stat-row">
-      {tiles.map((t, i) => (
+      {tiles.map((tile, i) => (
         // --i staggers the four tiles into a sequence as they land.
-        <div key={t.label} className="stat reveal" style={{ '--i': i }}>
+        <div key={tile.id} className="stat reveal" style={{ '--i': i }}>
           <div
             className={
-              t.live && live
+              tile.live && live
                 ? `stat-value stat-value-live${changed ? ' just-changed' : ''}`
                 : 'stat-value'
             }
           >
-            {t.live && live ? (
+            {tile.live && live ? (
               <RollingNumber value={subs} direction={direction ?? 'up'} />
             ) : (
-              t.value
+              tile.value
             )}
           </div>
           <div className="stat-label">
-            {t.label}
-            {t.unit && <span className="stat-unit"> · {t.unit}</span>}
+            {tile.label}
+            {tile.unit && <span className="stat-unit"> · {tile.unit}</span>}
 
             {/* The ticker between polls is extrapolated from the channel's
                 lifetime average growth, not measured — and the last few
@@ -66,16 +88,20 @@ export function StatRow({ data }) {
             {/* "measured" earns a stronger word than the other two: the rate
                 came from this channel's own observed crossings, not from an
                 average or a ceiling. */}
-            {t.live && live && estimated && (
+            {tile.live && live && estimated && (
               <span className="stat-est">
-                {basis === 'measured' ? ' · tracked rate' : ' · rough estimate'}
+                {' · '}
+                {basis === 'measured' ? t('stats.trackedRate') : t('stats.roughEstimate')}
               </span>
             )}
-            {t.live && live && step > 1 && (
-              <span className="stat-est"> · nearest {step.toLocaleString()}</span>
+            {tile.live && live && step > 1 && (
+              <span className="stat-est">
+                {' · '}
+                {t('stats.nearest', { n: formatNumber(step) })}
+              </span>
             )}
 
-            {t.live && (
+            {tile.live && (
               <button
                 type="button"
                 className={live ? 'live-toggle tiny plain is-on' : 'live-toggle tiny plain'}
@@ -83,7 +109,7 @@ export function StatRow({ data }) {
                 aria-pressed={live}
               >
                 <i className="live-dot" aria-hidden="true" />
-                <span className="btn-label">{live ? 'Live' : 'See live'}</span>
+                <span className="btn-label">{live ? t('stats.live') : t('stats.seeLive')}</span>
               </button>
             )}
           </div>
@@ -98,6 +124,11 @@ export function StatRow({ data }) {
 const FREE_ROWS = 5
 
 export function PerformanceChart({ videos, locked = false, channel, count }) {
+  // formatNumber rather than toLocaleString: the grouping separator has to come
+  // from the catalogue's numberLocale, or the row counts disagree with the
+  // subscriber tile directly above them on the same page.
+  const { t, formatNumber } = useI18n()
+
   // One open at a time: a column of expanded panels loses the chart, which is
   // the thing that told you which video to open.
   const [openId, setOpenId] = useState(null)
@@ -154,7 +185,7 @@ export function PerformanceChart({ videos, locked = false, channel, count }) {
           className="row-label plain"
           onClick={() => setOpenId(open ? null : v.id)}
           aria-expanded={open}
-          title={`${v.title} — ${views.toLocaleString()} views · ${v.multiple}× baseline · ${v.days_old}d old`}
+          title={`${v.title} — ${formatNumber(views)} views · ${v.multiple}× baseline · ${v.days_old}d old`}
         >
           <span className="mult">{v.multiple}×</span>
           <span className="title">{v.title}</span>
@@ -162,11 +193,11 @@ export function PerformanceChart({ videos, locked = false, channel, count }) {
               would swallow the few thousand views a refresh actually brings.
               tabular-nums keeps the column from shifting as the digits climb. */}
           <span className={live ? 'views is-live' : 'views'}>
-            {live ? views.toLocaleString() : compact(v.views)}
+            {live ? formatNumber(views) : compact(v.views)}
             {/* Only ever a climb — useLiveViews holds backwards readings at the
                 previous high, so there is no downward badge to render. */}
             {live && gain > 0 && (
-              <span className="views-gain"> ▲ +{gain.toLocaleString()}</span>
+              <span className="views-gain"> ▲ +{formatNumber(gain)}</span>
             )}
           </span>
           <span className="row-chevron" aria-hidden="true">
@@ -189,22 +220,19 @@ export function PerformanceChart({ videos, locked = false, channel, count }) {
   return (
     <figure className="chart reveal">
       <figcaption>
-        <h2>Every video vs. this channel's typical video</h2>
-        <p className="chart-sub">
-          The line is normal for this channel. Right is better than normal, left
-          is worse.
-        </p>
+        <h2>{t('chart.heading')}</h2>
+        <p className="chart-sub">{t('chart.sub')}</p>
       </figcaption>
 
       <div className="legend">
         <span>
-          <i className="swatch above" /> Above normal
+          <i className="swatch above" /> {t('chart.above')}
         </span>
         <span>
-          <i className="swatch below" /> Below normal
+          <i className="swatch below" /> {t('chart.below')}
         </span>
         <span>
-          <i className="swatch recent" /> Too new to judge
+          <i className="swatch recent" /> {t('chart.tooNew')}
         </span>
 
         {/* Opt-in, because it starts a poll that the rest of the page doesn't
@@ -218,7 +246,7 @@ export function PerformanceChart({ videos, locked = false, channel, count }) {
           aria-pressed={live}
         >
           <i className="live-dot" aria-hidden="true" />
-          <span className="btn-label">{live ? 'Live' : 'See live'}</span>
+          <span className="btn-label">{live ? t('stats.live') : t('stats.seeLive')}</span>
         </button>
       </div>
 
@@ -230,7 +258,7 @@ export function PerformanceChart({ videos, locked = false, channel, count }) {
             Positioning it against the whole plot would mean guessing a row
             height, which drifts the moment the type or spacing changes. */}
         {gated ? (
-          <Gated label={`${videos.length - FREE_ROWS} more videos`}>{rest.map(row)}</Gated>
+          <Gated label={t('chart.moreVideos', { n: videos.length - FREE_ROWS })}>{rest.map(row)}</Gated>
         ) : (
           rest.map(row)
         )}
@@ -241,21 +269,21 @@ export function PerformanceChart({ videos, locked = false, channel, count }) {
           gated. */}
       {!gated && (
       <details className="table-view">
-        <summary>Show as table</summary>
+        <summary>{t('chart.showTable')}</summary>
         <table>
           <thead>
             <tr>
-              <th>Video</th>
-              <th>Views</th>
-              <th>vs. normal</th>
-              <th>Age</th>
+              <th>{t('chart.colVideo')}</th>
+              <th>{t('chart.colViews')}</th>
+              <th>{t('chart.colVsNormal')}</th>
+              <th>{t('chart.colAge')}</th>
             </tr>
           </thead>
           <tbody>
             {videos.map((v) => (
               <tr key={v.id}>
                 <td>{v.title}</td>
-                <td>{v.views.toLocaleString()}</td>
+                <td>{formatNumber(v.views)}</td>
                 <td>{v.multiple}×</td>
                 <td>{v.days_old}d</td>
               </tr>

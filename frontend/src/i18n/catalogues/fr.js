@@ -40,7 +40,129 @@ export const fr = {
     "Les performances sont évaluées par rapport à la médiane des vues de chaque chaîne, pour qu'une seule vidéo virale ne fasse pas passer tout le reste pour un échec. Données publiques uniquement — ni rétention, ni CTR, ni sources de trafic.",
   'app.search.another': 'Auditer une autre chaîne',
   'app.search.ariaChannel': 'Chaîne à auditer',
-  'app.search.ariaSubmit': 'Auditer la chaîne',
+  // ---------- report: stat tiles ----------
+  'stats.subscribers': 'Abonnés',
+  'stats.typical': 'Vidéo type',
+  'stats.typicalUnit': 'vues',
+  'stats.beat': 'Dépassent ce seuil',
+  'stats.beatUnit': 'sur {n}',
+  'stats.best': 'Meilleure vidéo',
+  'stats.bestUnit': 'la médiane',
+  'stats.trackedRate': 'rythme mesuré',
+  'stats.roughEstimate': 'estimation approximative',
+  'stats.nearest': 'au {n} près',
+  'stats.live': 'En direct',
+  'stats.seeLive': 'Voir en direct',
+
+  // ---------- report: sidebar ----------
+  'side.aria': 'Audits',
+  'side.home': 'Accueil',
+  'side.favorites': 'Mes favoris',
+  'side.recents': 'Audits récents',
+  'side.locked.lead': 'Connectez-vous pour enregistrer votre historique',
+  'side.locked.rest': 'Gardez chaque chaîne auditée, sur tous vos appareils.',
+  'side.locked.cta': 'Se connecter',
+  'side.removeFavorite': 'Retirer {name} des favoris',
+  'side.removeFavoriteShort': 'Retirer des favoris',
+  'side.removeHistory': 'Retirer {name} de l\'historique',
+  'side.removeHistoryShort': 'Retirer de l\'historique',
+
+  // ---------- report: performance chart ----------
+  'chart.heading': 'Chaque vidéo face à la vidéo type de cette chaîne',
+  'chart.sub':
+    'La ligne représente la normale de cette chaîne. À droite, mieux que la normale ; à gauche, moins bien.',
+  'chart.above': 'Au-dessus de la normale',
+  'chart.below': 'En dessous de la normale',
+  'chart.tooNew': 'Trop récente pour juger',
+  'chart.moreVideos': '{n} vidéos de plus',
+  'chart.showTable': 'Afficher en tableau',
+  'chart.colVideo': 'Vidéo',
+  'chart.colViews': 'Vues',
+  'chart.colVsNormal': 'vs normale',
+  'chart.colAge': 'Ancienneté',
+
+  // ---------- report: inline fixers ----------
+  'fixer.about.cta': 'Rédigez-la pour moi',
+  'fixer.about.aria': 'Section À propos suggérée',
+  'fixer.about.hint': 'Collez dans YouTube Studio → Personnalisation → Informations de base.',
+  'fixer.drafting': 'Rédaction…',
+  'fixer.chars': '{n} caractères',
+  'fixer.stillShort': '— toujours sous 200',
+  'fixer.copy': 'Copier',
+  'fixer.copied': 'Copié',
+  'fixer.retry': 'Réessayer',
+
+  // ---------- report: checklist ----------
+  'check.label.banner': 'Bannière de la chaîne',
+  'check.label.about': 'Section À propos',
+  'check.label.keywords': 'Mots-clés de la chaîne',
+  'check.label.handle': 'Identifiant personnalisé',
+  'check.label.tags': 'Tags des vidéos',
+  'check.label.descriptions': 'Descriptions des vidéos',
+  'check.label.titles': 'Longueur des titres',
+  'check.label.captions': 'Sous-titres',
+  'check.label.hd': 'Envois en HD',
+  'check.label.cadence': 'Régularité de publication',
+  'check.label.recency': 'Fraîcheur des publications',
+  'check.label.hit_rate': 'Taux de réussite',
+  'check.label.reach': 'Vues par abonné',
+  'check.label.engagement': 'Engagement',
+
+  'check.detail.banner.set': 'Définie',
+  'check.detail.banner.none': 'Aucune bannière envoyée',
+  'check.detail.about.chars': '{n} caractères',
+  'check.detail.about.empty': 'Vide',
+  'check.detail.keywords.set': 'Définis',
+  'check.detail.keywords.none': 'Aucun défini',
+  'check.detail.handle.claimed': '{handle}',
+  'check.detail.handle.none': 'Non réservé',
+  'check.detail.tags.detail': '{pct}% des {n} vidéos ont 3 tags ou plus',
+  'check.detail.descriptions.detail': '{pct}% font 250 caractères ou plus',
+  'check.detail.titles.detail': '{pct}% tiennent dans la plage 30–70 caractères',
+  'check.detail.captions.detail': '{pct}% ont des sous-titres',
+  'check.detail.hd.detail': '{pct}% sont en HD',
+  'check.detail.cadence.daily': 'Plusieurs vidéos par jour, en général',
+  'check.detail.cadence.everyDay': 'Une nouvelle vidéo chaque jour, en général',
+  'check.detail.cadence.every': 'Une nouvelle vidéo tous les {n} jours, en général',
+  'check.detail.cadence.unknown': 'Historique de publication insuffisant pour juger',
+  'check.detail.recency.today': 'Publiée aujourd\'hui',
+  'check.detail.recency.day': 'Dernier envoi il y a 1 jour',
+  'check.detail.recency.days': 'Dernier envoi il y a {n} jours',
+  'check.detail.recency.none': 'Aucun envoi trouvé',
+  'check.detail.hitRate.detail': '{pct}% des vidéos dépassent la médiane de la chaîne',
+  'check.detail.reach.detail': 'La vidéo médiane touche {pct}% du nombre d\'abonnés',
+  'check.detail.reach.hidden': 'Le nombre d\'abonnés est masqué sur cette chaîne',
+  'check.detail.engagement.detail': '{pct}% de likes et commentaires par vue, en général',
+  'check.detail.engagement.hidden': 'Les likes et commentaires sont masqués sur cette chaîne',
+
+  'check.fix.banner':
+    'Ajoutez une bannière 2560×1440 — c\'est la première chose que voit un nouveau visiteur.',
+  'check.fix.about':
+    'Écrivez 200 caractères ou plus expliquant le sujet de la chaîne et à qui elle s\'adresse. Ce texte est indexé.',
+  'check.fix.keywords':
+    'Ajoutez des mots-clés dans YouTube Studio → Paramètres → Chaîne → Informations de base.',
+  'check.fix.handle': 'Réservez un identifiant pour donner à la chaîne une URL mémorisable.',
+  'check.fix.tags':
+    '{missing} vidéos ont besoin de tags. Les tags servent surtout à lever l\'ambiguïté sur des sujets que YouTube pourrait mal interpréter.',
+  'check.fix.descriptions':
+    'Les descriptions courtes ne donnent rien à indexer à YouTube. Visez 250 caractères ou plus, avec le sujet énoncé dans les deux premières lignes.',
+  'check.fix.titles':
+    'Sous 30 caractères, un titre gaspille de la place dans les résultats ; au-delà de 70, il est tronqué avant l\'accroche.',
+  'check.fix.captions':
+    'Les vidéos sous-titrées sont indexables et regardables sans le son. Les sous-titres automatiques comptent, à condition de ne pas les désactiver.',
+  'check.fix.hd': 'Publiez en 1080p ou mieux.',
+  'check.fix.cadence':
+    'Au-delà de deux semaines d\'écart, vous perdez l\'élan algorithmique qui rend chaque publication plus facile que la précédente.',
+  'check.fix.recency':
+    'Après trois semaines de silence, le système de recommandation cesse de considérer la chaîne comme active. Publier quoi que ce soit le relance.',
+  'check.fix.hit_rate':
+    'La plupart des vidéos passent sous votre propre moyenne, ce qui signifie généralement que le catalogue repose sur quelques exceptions. Étudiez ce qu\'elles ont en commun.',
+  'check.fix.reach':
+    'Les vidéos touchent surtout des personnes déjà abonnées. Des titres et miniatures qui ne supposent aucune connaissance préalable vont plus loin.',
+  'check.fix.engagement':
+    'Les chaînes en bonne santé dépassent 4,5%. En dessous, le contenu est trouvé mais ne touche pas — demandez le like à la caméra et terminez sur une question qui mérite une réponse.',
+
+  'app.search.ariaSubmit':'Auditer la chaîne',
 
   // ---------- landing: hero ----------
   'landing.hero.kicker': 'Gratuit · Résultats immédiats · Données publiques uniquement',
@@ -164,6 +286,14 @@ export const fr = {
   // ---------- landing: guides ----------
   'landing.guides.heading': 'En savoir plus',
   'landing.guides.lede': 'Des réponses plus longues sur la construction du score et sur ce qu\'il faut en faire.',
+  'landing.guides.free': 'Ce que comprend l\'audit gratuit',
+  'landing.guides.score': 'Comment le score sur 100 est calculé',
+  'landing.guides.competitor': 'Analyser la chaîne d\'un concurrent',
+  'landing.guides.small': 'Pourquoi cela fonctionne pour les petites chaînes',
+  'landing.guides.versus': 'Comparaison avec vidIQ et TubeBuddy',
+  'landing.guides.checklist': 'Les quatorze contrôles, classés par ordre de priorité',
+  'landing.guides.views': 'Pourquoi vos vues baissent',
+  'landing.guides.upload': 'À quelle fréquence publier',
 
   // ---------- landing: closing CTA ----------
   'landing.cta.heading': 'Transformez le score en plan d\'action',

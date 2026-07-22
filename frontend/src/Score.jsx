@@ -163,7 +163,9 @@ function splitAtCheck(groups, limit) {
  * one-line change rather than a refactor.
  */
 export function Checklist({ health, fixers = {}, locked = false }) {
-  const t = useT()
+  // tOr as well as t: the check rows come from the API, so their strings fall
+  // back to the English prose the response already carries rather than to a key.
+  const { t, tOr } = useI18n()
   const byId = Object.fromEntries(health.checks.map((c) => [c.id, c]))
 
   const groups = GROUPS.map((g) => ({
@@ -186,16 +188,18 @@ export function Checklist({ health, fixers = {}, locked = false }) {
           </span>
           <div className="check-body">
             <div className="check-head">
-              <span className="check-label">{c.label}</span>
-              <span className="check-detail">{c.detail}</span>
+              <span className="check-label">{tOr(`check.label.${c.id}`, c.label)}</span>
+              <span className="check-detail">
+                {tOr(`check.detail.${c.detail_key}`, c.detail, c.params)}
+              </span>
             </div>
             {/* Only failures and warnings carry a fix — the server sends
                 an empty string for anything already passing. */}
             {/* title carries the full sentence for the narrow-column case,
                 where the line ellipses rather than wrapping. */}
             {c.fix && (
-              <p className="check-fix" title={c.fix}>
-                {c.fix}
+              <p className="check-fix" title={tOr(`check.fix.${c.id}`, c.fix, c.params)}>
+                {tOr(`check.fix.${c.id}`, c.fix, c.params)}
               </p>
             )}
             {c.status !== 'pass' && c.status !== 'skip' && fixers[c.id]}

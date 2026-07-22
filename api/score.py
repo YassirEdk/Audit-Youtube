@@ -43,7 +43,23 @@ def _pct(x: float) -> int:
     return round(100 * x)
 
 
-def _check(id, label, status, detail, fix, weight) -> dict:
+def _check(id, label, status, detail, fix, weight, detail_key="", params=None) -> dict:
+    """One row of the checklist.
+
+    `label`, `detail` and `fix` stay English and are not going away: they feed
+    the LLM prompt in audit.py and the CLI dump, both of which want one
+    consistent language regardless of who is reading the web page.
+
+    `detail_key` and `params` are what the browser renders. The frontend looks
+    up check.label.<id> / check.detail.<detail_key> / check.fix.<id> in its own
+    catalogues and interpolates `params`, falling back to the English prose
+    above when a key is missing — so an untranslated check degrades to English
+    rather than to a blank row.
+
+    The split exists because the numbers are computed here and the sentence
+    around them is not translatable by substitution: "40% are 250+ characters"
+    puts the percentage in a different place in Arabic than in English.
+    """
     return {
         "id": id,
         "label": label,
@@ -53,6 +69,8 @@ def _check(id, label, status, detail, fix, weight) -> dict:
         # advice next to a green tick.
         "fix": fix if status in (WARN, FAIL) else "",
         "weight": weight,
+        "detail_key": detail_key,
+        "params": params or {},
     }
 
 
@@ -71,6 +89,7 @@ def _setup_checks(channel: dict) -> list[dict]:
             "Set" if banner else "No banner uploaded",
             "Add a 2560×1440 banner — it's the first thing a new visitor sees.",
             5,
+            "banner.set" if banner else "banner.none",
         ),
         _check(
             "about",
@@ -82,6 +101,8 @@ def _setup_checks(channel: dict) -> list[dict]:
             "Write 200+ characters covering what the channel is about and who "
             "it's for. This text is searchable.",
             7,
+            "about.chars" if about else "about.empty",
+            {"n": len(about)},
         ),
         _check(
             "keywords",
@@ -93,6 +114,7 @@ def _setup_checks(channel: dict) -> list[dict]:
             "Add channel keywords in YouTube Studio → Settings → Channel → "
             "Basic info.",
             4,
+            "keywords.set" if keywords else "keywords.none",
         ),
         _check(
             "handle",
@@ -101,6 +123,10 @@ def _setup_checks(channel: dict) -> list[dict]:
             snippet.get("customUrl", "Not claimed"),
             "Claim a handle so the channel has a memorable URL.",
             4,
+            # The handle itself is a proper noun — the key renders it bare
+            # rather than wrapping it in a translated sentence.
+            "handle.claimed" if snippet.get("customUrl") else "handle.none",
+            {"handle": snippet.get("customUrl", "")},
         ),
     ]
 
@@ -124,6 +150,8 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             f"{n - round(tagged * n)} videos need tags. Tags matter most for "
             "disambiguating topics YouTube might otherwise misread.",
             10,
+            "tags.detail",
+            {"pct": _pct(tagged), "n": n, "missing": n - round(tagged * n)},
         ),
         _check(
             "descriptions",
@@ -133,6 +161,8 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             "Short descriptions give YouTube nothing to index. Aim for 250+ "
             "characters with the topic stated in the first two lines.",
             10,
+            "descriptions.detail",
+            {"pct": _pct(described)},
         ),
         _check(
             "titles",
@@ -142,6 +172,8 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             "Titles under 30 characters waste search real estate; over 70 get "
             "truncated before the hook lands.",
             7,
+            "titles.detail",
+            {"pct": _pct(titled)},
         ),
         _check(
             "captions",
@@ -151,6 +183,8 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             "Captioned videos are indexable and watchable muted. Auto-captions "
             "count, but only if you don't disable them.",
             5,
+            "captions.detail",
+            {"pct": _pct(captioned)},
         ),
         _check(
             "hd",
@@ -159,6 +193,8 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             f"{_pct(hd)}% are HD",
             "Upload at 1080p or better.",
             4,
+            "hd.detail",
+            {"pct": _pct(hd)},
         ),
     ]
 
@@ -222,6 +258,13 @@ def _habit_checks(videos: list[dict], share_above: float, channel: dict) -> list
             "Gaps beyond two weeks cost you the algorithmic momentum that "
             "makes each upload easier than the last.",
             10,
+            # Three separate keys, not one sentence with a number in it: "every
+            # 1 day" is not a sentence, and "multiple a day" is a different
+            # claim rather than a smaller gap.
+            ("cadence.daily" if gap == 0 else "cadence.every" if gap != 1 else "cadence.everyDay")
+            if gaps
+            else "cadence.unknown",
+            {"n": gap},
         ),
         _check(
             "recency",
@@ -236,6 +279,16 @@ def _habit_checks(videos: list[dict], share_above: float, channel: dict) -> list
             "Three weeks of silence and the recommendation system stops "
             "treating the channel as active. Publishing anything restarts it.",
             8,
+            (
+                "recency.today"
+                if since == 0
+                else "recency.day"
+                if since == 1
+                else "recency.days"
+            )
+            if since is not None
+            else "recency.none",
+            {"n": since or 0},
         ),
         _check(
             "hit_rate",
@@ -245,6 +298,8 @@ def _habit_checks(videos: list[dict], share_above: float, channel: dict) -> list
             "Most uploads land below your own average, which usually means the "
             "catalogue is carried by a few outliers. Study what they share.",
             10,
+            "hitRate.detail",
+            {"pct": _pct(share_above)},
         ),
         _check(
             "reach",
@@ -256,6 +311,8 @@ def _habit_checks(videos: list[dict], share_above: float, channel: dict) -> list
             "Videos are mostly reaching people who already subscribed. Titles "
             "and thumbnails that assume no prior knowledge travel further.",
             8,
+            "reach.detail" if subs else "reach.hidden",
+            {"pct": _pct(reach)},
         ),
     ]
 
@@ -272,6 +329,8 @@ def _habit_checks(videos: list[dict], share_above: float, channel: dict) -> list
                 "being found but not connecting — ask for the like on camera "
                 "and end on a question worth answering.",
                 8,
+                "engagement.detail",
+                {"pct": f"{engagement * 100:.1f}"},
             )
         )
     else:
@@ -283,6 +342,7 @@ def _habit_checks(videos: list[dict], share_above: float, channel: dict) -> list
                 "Likes and comments are hidden on this channel",
                 "",
                 8,
+                "engagement.hidden",
             )
         )
 

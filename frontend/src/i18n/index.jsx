@@ -88,13 +88,32 @@ export function I18nProvider({ locale, children }) {
       return interpolate(str, vars)
     }
 
+    /**
+     * Like `t`, but falls back to a caller-supplied string rather than to the
+     * key.
+     *
+     * The checklist rows are built by the API, which can ship a new check
+     * before the catalogues here know about it. In that window `t` would render
+     * the raw key — "check.label.shorts" — while the response already carries a
+     * perfectly good English label for the same row. So the server's own prose
+     * is the last resort, and an unrecognised check degrades to English instead
+     * of to debug output.
+     *
+     * No dev warning: unlike `t`, a miss here is an expected state during a
+     * deploy, not a translator's oversight.
+     */
+    const tOr = (key, fallback, vars) => {
+      const str = catalogue[key] ?? en[key]
+      return str === undefined ? fallback : interpolate(str, vars)
+    }
+
     // Numbers are localised separately from strings because they aren't
     // translated at all — 1,234 is 1 234 in French and ١٢٣٤ or 1.234 elsewhere,
     // and none of that belongs in a catalogue a translator edits.
     const formatNumber = (n, options) =>
       new Intl.NumberFormat(meta.numberLocale, options).format(n)
 
-    return { locale, dir: meta.dir, t, formatNumber }
+    return { locale, dir: meta.dir, t, tOr, formatNumber }
   }, [locale])
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { apiPost } from './api.js'
+import { useT } from './i18n/index.jsx'
 
 /**
  * Inline fix for the "About section" check.
@@ -10,6 +11,7 @@ import { apiPost } from './api.js'
  * only fires on an explicit click.
  */
 export function AboutFixer({ channel, videos, enabled, disabledReason }) {
+  const t = useT()
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -60,13 +62,13 @@ export function AboutFixer({ channel, videos, enabled, disabledReason }) {
           disabled={!enabled}
           title={enabled ? undefined : disabledReason}
         >
-          <span className="btn-label">✦ Write one for me</span>
+          <span className="btn-label">✦ {t('fixer.about.cta')}</span>
         </button>
       )}
 
       {busy && !draft && (
         <span className="fixer-busy">
-          <span className="spinner" /> Drafting…
+          <span className="spinner" /> {t('fixer.drafting')}
         </span>
       )}
 
@@ -81,23 +83,21 @@ export function AboutFixer({ channel, videos, enabled, disabledReason }) {
             onChange={(e) => setText(e.target.value)}
             rows={6}
             spellCheck="false"
-            aria-label="Suggested About section"
+            aria-label={t('fixer.about.aria')}
           />
           <div className="fixer-actions">
             <span className={`fixer-count ${draft.length >= 200 ? 'ok' : 'short'}`}>
-              {draft.length} characters
-              {draft.length < 200 && ' — still under 200'}
+              {t('fixer.chars', { n: draft.length })}
+              {draft.length < 200 && ` ${t('fixer.stillShort')}`}
             </span>
             <button type="button" className="ghost small fixer-cta" onClick={copy}>
-              <span className="btn-label">{copied ? 'Copied' : 'Copy'}</span>
+              <span className="btn-label">{copied ? t('fixer.copied') : t('fixer.copy')}</span>
             </button>
             <button type="button" className="ghost small fixer-cta" onClick={generate} disabled={busy}>
-              <span className="btn-label">Try again</span>
+              <span className="btn-label">{t('fixer.retry')}</span>
             </button>
           </div>
-          <p className="fixer-hint">
-            Paste into YouTube Studio → Customization → Basic info.
-          </p>
+          <p className="fixer-hint">{t('fixer.about.hint')}</p>
         </div>
       )}
     </div>

@@ -38,7 +38,129 @@ export const es = {
     'El rendimiento se mide contra la mediana de vistas del propio canal, así que un video viral no hace que todo lo demás parezca un fracaso. Solo datos públicos: sin retención, CTR ni fuentes de tráfico.',
   'app.search.another': 'Auditar otro canal',
   'app.search.ariaChannel': 'Canal por auditar',
-  'app.search.ariaSubmit': 'Auditar canal',
+  // ---------- report: stat tiles ----------
+  'stats.subscribers': 'Suscriptores',
+  'stats.typical': 'Video típico',
+  'stats.typicalUnit': 'vistas',
+  'stats.beat': 'Superan esa marca',
+  'stats.beatUnit': 'de {n}',
+  'stats.best': 'Mejor video',
+  'stats.bestUnit': 'la mediana',
+  'stats.trackedRate': 'ritmo medido',
+  'stats.roughEstimate': 'estimación aproximada',
+  'stats.nearest': 'al {n} más cercano',
+  'stats.live': 'En vivo',
+  'stats.seeLive': 'Ver en vivo',
+
+  // ---------- report: sidebar ----------
+  'side.aria': 'Auditorías',
+  'side.home': 'Inicio',
+  'side.favorites': 'Mis favoritos',
+  'side.recents': 'Auditorías recientes',
+  'side.locked.lead': 'Inicia sesión para guardar tu historial',
+  'side.locked.rest': 'Conserva cada canal que audites, en cualquier dispositivo.',
+  'side.locked.cta': 'Iniciar sesión',
+  'side.removeFavorite': 'Quitar {name} de favoritos',
+  'side.removeFavoriteShort': 'Quitar de favoritos',
+  'side.removeHistory': 'Quitar {name} del historial',
+  'side.removeHistoryShort': 'Quitar del historial',
+
+  // ---------- report: performance chart ----------
+  'chart.heading': 'Cada video frente al video típico de este canal',
+  'chart.sub':
+    'La línea es lo normal para este canal. A la derecha es mejor que lo normal; a la izquierda, peor.',
+  'chart.above': 'Por encima de lo normal',
+  'chart.below': 'Por debajo de lo normal',
+  'chart.tooNew': 'Demasiado reciente para juzgar',
+  'chart.moreVideos': '{n} videos más',
+  'chart.showTable': 'Ver como tabla',
+  'chart.colVideo': 'Video',
+  'chart.colViews': 'Vistas',
+  'chart.colVsNormal': 'vs. lo normal',
+  'chart.colAge': 'Antigüedad',
+
+  // ---------- report: inline fixers ----------
+  'fixer.about.cta': 'Escríbela por mí',
+  'fixer.about.aria': 'Sección Información sugerida',
+  'fixer.about.hint': 'Pégala en YouTube Studio → Personalización → Información básica.',
+  'fixer.drafting': 'Redactando…',
+  'fixer.chars': '{n} caracteres',
+  'fixer.stillShort': '— aún por debajo de 200',
+  'fixer.copy': 'Copiar',
+  'fixer.copied': 'Copiado',
+  'fixer.retry': 'Reintentar',
+
+  // ---------- report: checklist ----------
+  'check.label.banner': 'Banner del canal',
+  'check.label.about': 'Sección Información',
+  'check.label.keywords': 'Palabras clave del canal',
+  'check.label.handle': 'Identificador personalizado',
+  'check.label.tags': 'Etiquetas de video',
+  'check.label.descriptions': 'Descripciones de video',
+  'check.label.titles': 'Longitud del título',
+  'check.label.captions': 'Subtítulos',
+  'check.label.hd': 'Subidas en HD',
+  'check.label.cadence': 'Constancia al publicar',
+  'check.label.recency': 'Actualidad de las publicaciones',
+  'check.label.hit_rate': 'Tasa de aciertos',
+  'check.label.reach': 'Vistas por suscriptor',
+  'check.label.engagement': 'Interacción',
+
+  'check.detail.banner.set': 'Configurado',
+  'check.detail.banner.none': 'No se subió ningún banner',
+  'check.detail.about.chars': '{n} caracteres',
+  'check.detail.about.empty': 'Vacía',
+  'check.detail.keywords.set': 'Configuradas',
+  'check.detail.keywords.none': 'Ninguna configurada',
+  'check.detail.handle.claimed': '{handle}',
+  'check.detail.handle.none': 'Sin reclamar',
+  'check.detail.tags.detail': '{pct}% de {n} videos tienen 3 etiquetas o más',
+  'check.detail.descriptions.detail': '{pct}% tienen 250 caracteres o más',
+  'check.detail.titles.detail': '{pct}% están en el rango de 30–70 caracteres',
+  'check.detail.captions.detail': '{pct}% tienen subtítulos',
+  'check.detail.hd.detail': '{pct}% están en HD',
+  'check.detail.cadence.daily': 'Varios videos al día, normalmente',
+  'check.detail.cadence.everyDay': 'Un video nuevo cada día, normalmente',
+  'check.detail.cadence.every': 'Un video nuevo cada {n} días, normalmente',
+  'check.detail.cadence.unknown': 'No hay suficiente historial para juzgar',
+  'check.detail.recency.today': 'Publicado hoy',
+  'check.detail.recency.day': 'Última subida hace 1 día',
+  'check.detail.recency.days': 'Última subida hace {n} días',
+  'check.detail.recency.none': 'No se encontraron subidas',
+  'check.detail.hitRate.detail': '{pct}% de los videos superan la mediana del propio canal',
+  'check.detail.reach.detail': 'El video mediano llega al {pct}% de los suscriptores',
+  'check.detail.reach.hidden': 'El número de suscriptores está oculto en este canal',
+  'check.detail.engagement.detail': '{pct}% de likes y comentarios por vista, normalmente',
+  'check.detail.engagement.hidden': 'Los likes y comentarios están ocultos en este canal',
+
+  'check.fix.banner':
+    'Agrega un banner de 2560×1440: es lo primero que ve un visitante nuevo.',
+  'check.fix.about':
+    'Escribe 200 caracteres o más explicando de qué trata el canal y para quién es. Este texto se puede buscar.',
+  'check.fix.keywords':
+    'Agrega palabras clave en YouTube Studio → Configuración → Canal → Información básica.',
+  'check.fix.handle': 'Reclama un identificador para que el canal tenga una URL memorable.',
+  'check.fix.tags':
+    '{missing} videos necesitan etiquetas. Las etiquetas importan sobre todo para aclarar temas que YouTube podría malinterpretar.',
+  'check.fix.descriptions':
+    'Las descripciones cortas no le dan nada que indexar a YouTube. Apunta a 250 caracteres o más, con el tema en las dos primeras líneas.',
+  'check.fix.titles':
+    'Los títulos de menos de 30 caracteres desperdician espacio en las búsquedas; los de más de 70 se cortan antes del gancho.',
+  'check.fix.captions':
+    'Los videos con subtítulos son indexables y se pueden ver sin sonido. Los subtítulos automáticos cuentan, pero solo si no los desactivas.',
+  'check.fix.hd': 'Sube en 1080p o mejor.',
+  'check.fix.cadence':
+    'Los huecos de más de dos semanas te cuestan el impulso algorítmico que hace que cada subida sea más fácil que la anterior.',
+  'check.fix.recency':
+    'Tras tres semanas de silencio, el sistema de recomendaciones deja de tratar el canal como activo. Publicar cualquier cosa lo reinicia.',
+  'check.fix.hit_rate':
+    'La mayoría de las subidas quedan por debajo de tu propio promedio, lo que suele significar que el catálogo se sostiene por unas pocas excepciones. Estudia qué tienen en común.',
+  'check.fix.reach':
+    'Los videos llegan sobre todo a quienes ya están suscritos. Los títulos y miniaturas que no dan nada por sabido llegan más lejos.',
+  'check.fix.engagement':
+    'Los canales sanos están por encima del 4,5%. Por debajo, el contenido se encuentra pero no conecta: pide el like en cámara y termina con una pregunta que valga la pena responder.',
+
+  'app.search.ariaSubmit':'Auditar canal',
 
   // ---------- landing: hero ----------
   'landing.hero.kicker': 'Gratis · Resultados al instante · Solo datos públicos',
@@ -162,6 +284,14 @@ export const es = {
   // ---------- landing: guides ----------
   'landing.guides.heading': 'Leer más',
   'landing.guides.lede': 'Respuestas más largas sobre cómo se construye la puntuación y qué hacer con ella.',
+  'landing.guides.free': 'Qué incluye la auditoría gratuita',
+  'landing.guides.score': 'Cómo se calcula la puntuación sobre 100',
+  'landing.guides.competitor': 'Analizar el canal de un competidor',
+  'landing.guides.small': 'Por qué funciona para canales pequeños',
+  'landing.guides.versus': 'Comparación con vidIQ y TubeBuddy',
+  'landing.guides.checklist': 'Las catorce comprobaciones, ordenadas por prioridad',
+  'landing.guides.views': 'Por qué están cayendo tus vistas',
+  'landing.guides.upload': 'Con qué frecuencia deberías publicar',
 
   // ---------- landing: closing CTA ----------
   'landing.cta.heading': 'Convierte la puntuación en un plan',

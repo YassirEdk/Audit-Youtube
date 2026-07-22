@@ -9,6 +9,7 @@
  */
 
 import { Avatar } from './Avatar.jsx'
+import { useT } from './i18n/index.jsx'
 import { useAuditHistory } from './useAuditHistory.js'
 import { useAuth, useLocked } from './useAuth.js'
 import { useSavedAudits } from './useSavedAudits.js'
@@ -30,6 +31,7 @@ function toneFor(score) {
 }
 
 export function Sidebar({ current, onHome, onSelect }) {
+  const t = useT()
   const locked = useLocked()
   const { requestAuth } = useAuth()
   // Still read (and, in Results, still recorded) while signed out — the audits
@@ -44,22 +46,22 @@ export function Sidebar({ current, onHome, onSelect }) {
   const recents = items.filter((it) => !savedIds.has(it.id))
 
   return (
-    <nav className="yt-sidebar" aria-label="Audits">
+    <nav className="yt-sidebar" aria-label={t('side.aria')}>
       <button type="button" className="side-item plain" onClick={onHome}>
         <span className="side-icon">
           <HomeIcon />
         </span>
-        <span className="side-label">Home</span>
+        <span className="side-label">{t('side.home')}</span>
       </button>
 
       {locked && (
         <>
           <hr className="side-rule" />
           <div className="side-locked">
-            <p>Log in to save your history</p>
-            <span>Keep every channel you audit, on any device.</span>
+            <p>{t('side.locked.lead')}</p>
+            <span>{t('side.locked.rest')}</span>
             <button type="button" className="ghost small" onClick={() => requestAuth('login')}>
-              Log in
+              {t('side.locked.cta')}
             </button>
           </div>
         </>
@@ -68,7 +70,7 @@ export function Sidebar({ current, onHome, onSelect }) {
       {!locked && saved.length > 0 && (
         <>
           <hr className="side-rule" />
-          <h4 className="side-heading">My favorite</h4>
+          <h4 className="side-heading">{t('side.favorites')}</h4>
 
           {saved.map((it) => {
             const name = it.channel_title || it.channel_handle
@@ -92,8 +94,8 @@ export function Sidebar({ current, onHome, onSelect }) {
                   type="button"
                   className="side-remove plain"
                   onClick={() => unsave(it.channel_id)}
-                  aria-label={`Remove ${name} from favorites`}
-                  title="Remove from favorites"
+                  aria-label={t('side.removeFavorite', { name })}
+                  title={t('side.removeFavoriteShort')}
                 >
                   ✕
                 </button>
@@ -106,7 +108,7 @@ export function Sidebar({ current, onHome, onSelect }) {
       {!locked && recents.length > 0 && (
         <>
           <hr className="side-rule" />
-          <h4 className="side-heading">Recent audits</h4>
+          <h4 className="side-heading">{t('side.recents')}</h4>
 
           {recents.map((it) => {
             // The list is most-recent-first, so the top row is the last audit
@@ -139,8 +141,8 @@ export function Sidebar({ current, onHome, onSelect }) {
                   type="button"
                   className="side-remove plain"
                   onClick={() => remove(it)}
-                  aria-label={`Remove ${name} from history`}
-                  title="Remove from history"
+                  aria-label={t('side.removeHistory', { name })}
+                  title={t('side.removeHistoryShort')}
                 >
                   ✕
                 </button>

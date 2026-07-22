@@ -183,14 +183,14 @@ function FaqSchema() {
  * PAGES isn't linked from the rendered landing HTML, the build fails.
  */
 const GUIDES = [
-  ['free-youtube-channel-audit-tool', 'What the free audit includes'],
-  ['how-the-youtube-channel-score-works', 'How the score out of 100 is calculated'],
-  ['youtube-competitor-channel-analysis', "Analysing a competitor's channel"],
-  ['youtube-audit-for-small-channels', 'Why this works for small channels'],
-  ['youtube-channel-audit-vs-vidiq-tubebuddy', 'How this compares to vidIQ and TubeBuddy'],
-  ['youtube-channel-audit-checklist', 'The fourteen checks, ordered by what to fix first'],
-  ['why-are-my-youtube-views-dropping', 'Why your views are dropping'],
-  ['how-often-should-i-upload-to-youtube', 'How often you should upload'],
+  ['free-youtube-channel-audit-tool', 'free'],
+  ['how-the-youtube-channel-score-works', 'score'],
+  ['youtube-competitor-channel-analysis', 'competitor'],
+  ['youtube-audit-for-small-channels', 'small'],
+  ['youtube-channel-audit-vs-vidiq-tubebuddy', 'versus'],
+  ['youtube-channel-audit-checklist', 'checklist'],
+  ['why-are-my-youtube-views-dropping', 'views'],
+  ['how-often-should-i-upload-to-youtube', 'upload'],
 ]
 
 // There's only ever one search field on the landing page now, so the closing
@@ -412,15 +412,16 @@ export function Landing({ onStart }) {
         {/* Real anchors, not router calls: these are separate documents served
             by the host, so a click has to leave the app.
 
-            hrefLang and lang stay: the pages are English-only, and those two
-            attributes are how a crawler and a screen reader are told so. They
-            cost nothing visually, which is the difference between them and the
-            "in English" badge that used to sit here. */}
+            hrefLang stays and says "en", because it describes the destination —
+            the eight pages themselves have no translations. `lang` is gone: it
+            describes the link *text*, which is now the reader's own language,
+            and leaving it would have a screen reader announce Arabic in an
+            English voice. */}
         <ul className="guide-links">
-          {GUIDES.map(([slug, label]) => (
+          {GUIDES.map(([slug, key]) => (
             <li key={slug}>
-              <a href={`/${slug}`} hrefLang="en" lang="en">
-                {label}
+              <a href={`/${slug}`} hrefLang="en">
+                {t(`landing.guides.${key}`)}
               </a>
             </li>
           ))}

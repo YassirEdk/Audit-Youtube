@@ -575,8 +575,28 @@ body::before {
    and colour are the platform's, so on Windows it rendered as a heavy black
    arrow against the grey divider and read as a different control from the
    magnifier beside it. This one inherits the row's own palette. */
+/*
+ * The width is stated rather than left to the content, and that is the whole
+ * point of it.
+ *
+ * A <select> sizes itself to its *widest* option, not the selected one. The
+ * locked options carry a "— sign up" suffix whose length is entirely up to the
+ * translator: "— sign up" in English, "— inscription requise" in French. So the
+ * closed control — which only ever shows the short "20 videos" — was rendering
+ * half again as wide in French, and the bar visibly changed shape on a language
+ * switch even though nothing about it had changed.
+ *
+ * Fixed, the closed value always fits (every language's unlocked label is
+ * "{n} <word>") and only the open list needs the room for the suffix, which the
+ * OS panel sizes for itself.
+ */
 .search select {
-  flex: 0 0 auto;
+  flex: 0 0 7.25rem;
+  /* Not optional, and not defensive: a flex item's min-width defaults to `auto`,
+     which for a <select> resolves to the width of its widest option — the exact
+     measurement the fixed basis above exists to ignore. Left at `auto` it wins
+     over the basis and the control grows anyway. */
+  min-width: 0;
   align-self: stretch;
   appearance: none;
   padding: 0 1.7rem 0 0.7rem;
@@ -819,6 +839,9 @@ body::before {
    compact one — but not more type: the depth picker is a secondary control and
    should stay quieter than the field it sits beside. */
 .search.lg select {
+  /* Same fixed-width reasoning as the compact bar, adjusted for the slightly
+     larger type and deeper chevron track. */
+  flex-basis: 7.75rem;
   padding: 0 1.85rem 0 0.85rem;
   font-size: 0.78rem;
 }
@@ -3894,15 +3917,52 @@ footer p {
   left: 20px;
 }
 
-[dir="rtl"] .cta-list li::before {
-  left: auto;
-  right: 4px;
-  border-left: 0;
-  border-right: 2px solid var(--ok);
+/*
+ * The CTA list, mirrored — marker on the right, text ranged right, the way the
+ * list would be set if it had been written in Arabic to begin with.
+ *
+ * The tick moves side. It does not turn around. It's drawn as two borders on a
+ * rotated box, and an earlier version of this rule swapped border-left for
+ * border-right along with the position — the right instinct for a divider and
+ * the wrong one for a glyph. Mirroring the short arm of a ✓ doesn't produce a
+ * mirrored tick, it produces a "›": the mark stopped reading as "included" and
+ * started reading as a chevron pointing away from its own sentence. A
+ * checkmark has no reading direction, the same way the score ring and the
+ * chart don't, so only `left`/`right` belong below.
+ *
+ * text-align is stated because the base rule sets `left` physically, and a
+ * physical value doesn't follow the container's direction.
+ */
+[dir="rtl"] .cta-list {
+  text-align: right;
 }
 
 [dir="rtl"] .cta-list li {
   padding: 5px 28px 5px 0;
+}
+
+[dir="rtl"] .cta-list li::before {
+  left: auto;
+  right: 4px;
+}
+
+/*
+ * The odometer is pinned LTR, and unlike most of this block that is not a
+ * layout preference — it is arithmetic.
+ *
+ * RollingNumber lays each digit out as its own flex item so the columns can
+ * animate independently. A flex row follows the container's direction, so under
+ * dir="rtl" the cells were placed right-to-left and 4 761 329 rendered as
+ * "761 329 4": the most significant digit had been moved to the far end.
+ *
+ * Arabic writes Western digits most-significant-first, exactly as English does
+ * — the number is not mirrored when the sentence around it is. Only the
+ * *sequence* needs pinning; the tile it sits in stays mirrored with everything
+ * else, and aria-label already carries the value as a real number for anyone
+ * not reading the cells.
+ */
+[dir="rtl"] .roll-inner {
+  direction: ltr;
 }
 
 [dir="rtl"] .scorecard-pts {
@@ -3914,9 +3974,20 @@ footer p {
   padding-right: var(--gap);
 }
 
-[dir="rtl"] .row-label .views.is-live {
-  text-align: left;
-}
+/*
+ * Nothing here for .row-label .views — and that absence is the fix.
+ *
+ * This used to flip the live count to text-align: left in RTL, on the
+ * assumption that the row was mirrored like the rest of the page. It isn't:
+ * .chart is pinned direction: ltr below, so the row still runs multiplier →
+ * title → views → chevron in Arabic. Flipping the alignment inside a 9.5rem
+ * reserved box therefore didn't mirror anything, it just pushed the number to
+ * the near edge and left a gap where it should have been sitting against the
+ * chevron.
+ *
+ * The base rule's text-align: right is correct in both directions for the same
+ * reason the chart's own bars are.
+ */
 
 [dir="rtl"] .fixer-count {
   margin-right: 0;
@@ -3934,7 +4005,8 @@ footer p {
   margin-left: 0.4rem;
 }
 
-[dir="rtl"] .row-chevron,
+/* .row-chevron is deliberately not here: it sits inside .chart, which is pinned
+   LTR, so its margin belongs on the left in both directions. */
 [dir="rtl"] .row-fix {
   margin-left: 0;
   margin-right: 0.5rem;
@@ -4015,18 +4087,20 @@ footer p {
 }
 
 /*
- * The guide list is pinned LTR, not isolated.
+ * The guide list was pinned LTR while its labels were English. They are
+ * translated now, so the rule that used to sit here has been deleted exactly as
+ * its own comment asked: a row of Arabic text belongs in Arabic reading order,
+ * and the "→" that follows the sentence has to follow it leftwards.
  *
- * Unlike the fields above, its content is known and entirely English — the
- * eight guide pages have no translations, and the link labels stay English
- * with an explicit "in English" note beside them. A row that is English text,
- * an English destination and a "→" affordance belongs in English reading
- * order; mirroring it would put the arrow on the left of a left-to-right
- * sentence.
+ * The destinations are still English — that is what hrefLang on the anchor is
+ * for, and it is not a layout concern.
  *
- * If the guides are ever translated, delete this rule — it stops being true
- * the moment the labels stop being English.
+ * The arrow needs both halves stated. `float` has no logical keyword in play
+ * here, so the side is set explicitly; and "→" is not one of the characters
+ * the bidi algorithm mirrors, so it would keep pointing right at the left-hand
+ * edge — back towards the text it is meant to lead away from.
  */
-[dir="rtl"] .guide-links {
-  direction: ltr;
+[dir="rtl"] .guide-links a::after {
+  content: "←";
+  float: left;
 }

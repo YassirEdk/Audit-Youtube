@@ -39,7 +39,127 @@ export const ar = {
     'يُقاس الأداء بالمقارنة مع وسيط المشاهدات الخاص بكل قناة، حتى لا يجعل فيديو واحد منتشر بقية الفيديوهات تبدو فاشلة. بيانات عامة فقط — بلا معدّل الاستبقاء أو CTR أو مصادر الزيارات.',
   'app.search.another': 'دقّق قناة أخرى',
   'app.search.ariaChannel': 'القناة المراد تدقيقها',
-  'app.search.ariaSubmit': 'تدقيق القناة',
+  // ---------- report: stat tiles ----------
+  'stats.subscribers': 'المشتركون',
+  'stats.typical': 'الفيديو المعتاد',
+  'stats.typicalUnit': 'مشاهدة',
+  'stats.beat': 'تجاوزت هذا الحد',
+  'stats.beatUnit': 'من {n}',
+  'stats.best': 'أفضل فيديو',
+  'stats.bestUnit': 'من المعدل',
+  'stats.trackedRate': 'معدل مُتتبَّع',
+  'stats.roughEstimate': 'تقدير تقريبي',
+  'stats.nearest': 'لأقرب {n}',
+  'stats.live': 'مباشر',
+  'stats.seeLive': 'عرض مباشر',
+
+  // ---------- report: sidebar ----------
+  'side.aria': 'عمليات التدقيق',
+  'side.home': 'الرئيسية',
+  'side.favorites': 'المفضلة',
+  'side.recents': 'عمليات تدقيق حديثة',
+  'side.locked.lead': 'سجّل الدخول لحفظ سجلك',
+  'side.locked.rest': 'احتفظ بكل قناة تدققها، على أي جهاز.',
+  'side.locked.cta': 'تسجيل الدخول',
+  'side.removeFavorite': 'إزالة {name} من المفضلة',
+  'side.removeFavoriteShort': 'إزالة من المفضلة',
+  'side.removeHistory': 'إزالة {name} من السجل',
+  'side.removeHistoryShort': 'إزالة من السجل',
+
+  // ---------- report: performance chart ----------
+  'chart.heading': 'كل فيديو مقارنةً بالفيديو المعتاد لهذه القناة',
+  'chart.sub': 'الخط يمثّل المعتاد لهذه القناة. اليمين أفضل من المعتاد، واليسار أسوأ.',
+  'chart.above': 'أعلى من المعتاد',
+  'chart.below': 'أدنى من المعتاد',
+  'chart.tooNew': 'أحدث من أن يُحكم عليه',
+  'chart.moreVideos': '{n} فيديو إضافي',
+  'chart.showTable': 'عرض كجدول',
+  'chart.colVideo': 'الفيديو',
+  'chart.colViews': 'المشاهدات',
+  'chart.colVsNormal': 'مقابل المعتاد',
+  'chart.colAge': 'العمر',
+
+  // ---------- report: inline fixers ----------
+  'fixer.about.cta': 'اكتبها لي',
+  'fixer.about.aria': 'نبذة مقترحة',
+  'fixer.about.hint': 'الصقها في YouTube Studio ← التخصيص ← المعلومات الأساسية.',
+  'fixer.drafting': 'جارٍ الصياغة…',
+  'fixer.chars': '{n} حرفاً',
+  'fixer.stillShort': '— ما زال دون 200',
+  'fixer.copy': 'نسخ',
+  'fixer.copied': 'تم النسخ',
+  'fixer.retry': 'حاول مجدداً',
+
+  // ---------- report: checklist ----------
+  'check.label.banner': 'بانر القناة',
+  'check.label.about': 'قسم النبذة',
+  'check.label.keywords': 'كلمات القناة المفتاحية',
+  'check.label.handle': 'المعرّف المخصص',
+  'check.label.tags': 'وسوم الفيديو',
+  'check.label.descriptions': 'أوصاف الفيديو',
+  'check.label.titles': 'طول العنوان',
+  'check.label.captions': 'الترجمات',
+  'check.label.hd': 'رفع بجودة عالية',
+  'check.label.cadence': 'انتظام النشر',
+  'check.label.recency': 'حداثة النشر',
+  'check.label.hit_rate': 'نسبة النجاح',
+  'check.label.reach': 'المشاهدات لكل مشترك',
+  'check.label.engagement': 'التفاعل',
+
+  'check.detail.banner.set': 'موجود',
+  'check.detail.banner.none': 'لم يُرفع أي بانر',
+  'check.detail.about.chars': '{n} حرفاً',
+  'check.detail.about.empty': 'فارغ',
+  'check.detail.keywords.set': 'موجودة',
+  'check.detail.keywords.none': 'غير محددة',
+  'check.detail.handle.claimed': '{handle}',
+  'check.detail.handle.none': 'غير محجوز',
+  'check.detail.tags.detail': '{pct}% من {n} فيديو تحمل 3 وسوم أو أكثر',
+  'check.detail.descriptions.detail': '{pct}% بطول 250 حرفاً أو أكثر',
+  'check.detail.titles.detail': '{pct}% ضمن نطاق 30–70 حرفاً',
+  'check.detail.captions.detail': '{pct}% تحتوي على ترجمات',
+  'check.detail.hd.detail': '{pct}% بجودة عالية',
+  'check.detail.cadence.daily': 'عدة فيديوهات يومياً، عادةً',
+  'check.detail.cadence.everyDay': 'فيديو جديد كل يوم، عادةً',
+  'check.detail.cadence.every': 'فيديو جديد كل {n} يوماً، عادةً',
+  'check.detail.cadence.unknown': 'سجل النشر لا يكفي للحكم',
+  'check.detail.recency.today': 'نُشر اليوم',
+  'check.detail.recency.day': 'آخر رفع قبل يوم واحد',
+  'check.detail.recency.days': 'آخر رفع قبل {n} يوماً',
+  'check.detail.recency.none': 'لم يُعثر على أي رفع',
+  'check.detail.hitRate.detail': '{pct}% من الفيديوهات تتجاوز متوسط القناة نفسها',
+  'check.detail.reach.detail': 'الفيديو المعتاد يصل إلى {pct}% من عدد المشتركين',
+  'check.detail.reach.hidden': 'عدد المشتركين مخفي في هذه القناة',
+  'check.detail.engagement.detail': '{pct}% إعجابات وتعليقات لكل مشاهدة، عادةً',
+  'check.detail.engagement.hidden': 'الإعجابات والتعليقات مخفية في هذه القناة',
+
+  'check.fix.banner': 'أضف بانراً بمقاس 2560×1440 — فهو أول ما يراه الزائر الجديد.',
+  'check.fix.about':
+    'اكتب 200 حرف أو أكثر توضح موضوع القناة ولمن هي. هذا النص قابل للبحث.',
+  'check.fix.keywords':
+    'أضف كلمات مفتاحية للقناة من YouTube Studio ← الإعدادات ← القناة ← المعلومات الأساسية.',
+  'check.fix.handle': 'احجز معرّفاً ليصبح للقناة رابط سهل التذكر.',
+  'check.fix.tags':
+    '{missing} فيديو بحاجة إلى وسوم. الوسوم أهم ما يكون في توضيح المواضيع التي قد يسيء يوتيوب فهمها.',
+  'check.fix.descriptions':
+    'الأوصاف القصيرة لا تعطي يوتيوب ما يفهرسه. استهدف 250 حرفاً أو أكثر مع ذكر الموضوع في أول سطرين.',
+  'check.fix.titles':
+    'العناوين دون 30 حرفاً تهدر مساحة البحث، وما تجاوز 70 حرفاً يُقتطع قبل أن تصل الفكرة.',
+  'check.fix.captions':
+    'الفيديوهات المترجمة قابلة للفهرسة وللمشاهدة بلا صوت. الترجمة التلقائية تُحتسب، لكن فقط إن لم تُعطّلها.',
+  'check.fix.hd': 'ارفع بدقة 1080p أو أعلى.',
+  'check.fix.cadence':
+    'الانقطاع لأكثر من أسبوعين يكلّفك الزخم الذي يجعل كل رفع أسهل من سابقه.',
+  'check.fix.recency':
+    'ثلاثة أسابيع من الصمت ويتوقف نظام الترشيح عن اعتبار القناة نشطة. أي نشر جديد يعيد تشغيله.',
+  'check.fix.hit_rate':
+    'معظم الفيديوهات تحت متوسطك، ما يعني عادةً أن المحتوى تحمله بضعة استثناءات. ادرس ما يجمع بينها.',
+  'check.fix.reach':
+    'الفيديوهات تصل غالباً إلى من اشترك بالفعل. العناوين والصور المصغّرة التي لا تفترض معرفة سابقة تنتشر أبعد.',
+  'check.fix.engagement':
+    'القنوات السليمة تتجاوز 4.5%. دون ذلك يكون المحتوى يُكتشف لكنه لا يُحدث أثراً — اطلب الإعجاب أمام الكاميرا واختم بسؤال يستحق الإجابة.',
+
+  'app.search.ariaSubmit':'تدقيق القناة',
 
   // ---------- landing: hero ----------
   'landing.hero.kicker': 'مجاني · نتائج فورية · بيانات عامة فقط',
@@ -165,6 +285,14 @@ export const ar = {
   // ---------- landing: guides ----------
   'landing.guides.heading': 'اقرأ المزيد',
   'landing.guides.lede': 'إجابات أطول عن كيفية بناء الدرجة وما تفعله بها.',
+  'landing.guides.free': 'ما الذي يشمله التدقيق المجاني',
+  'landing.guides.score': 'كيف تُحتسب الدرجة من 100',
+  'landing.guides.competitor': 'تحليل قناة منافس',
+  'landing.guides.small': 'لماذا ينفع هذا مع القنوات الصغيرة',
+  'landing.guides.versus': 'مقارنة بـ vidIQ و TubeBuddy',
+  'landing.guides.checklist': 'الفحوصات الأربعة عشر، مرتّبة حسب الأولوية',
+  'landing.guides.views': 'لماذا تنخفض مشاهداتك',
+  'landing.guides.upload': 'كم مرة ينبغي أن تنشر',
 
   // ---------- landing: closing CTA ----------
   'landing.cta.heading': 'حوّل الدرجة إلى خطة',

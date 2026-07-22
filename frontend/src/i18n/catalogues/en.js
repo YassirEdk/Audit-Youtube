@@ -55,6 +55,144 @@ export const en = {
   'app.search.ariaChannel': 'Channel to audit',
   'app.search.ariaSubmit': 'Audit channel',
 
+  // ---------- report: stat tiles ----------
+  'stats.subscribers': 'Subscribers',
+  'stats.typical': 'Typical video',
+  'stats.typicalUnit': 'views',
+  'stats.beat': 'Beat that bar',
+  'stats.beatUnit': 'of {n}',
+  'stats.best': 'Best video',
+  'stats.bestUnit': 'baseline',
+  // The two qualifiers on the live ticker. "tracked" is the stronger word on
+  // purpose: that rate came from the channel's own observed crossings, the
+  // other is extrapolated from a lifetime average.
+  'stats.trackedRate': 'tracked rate',
+  'stats.roughEstimate': 'rough estimate',
+  'stats.nearest': 'nearest {n}',
+  'stats.live': 'Live',
+  'stats.seeLive': 'See live',
+
+  // ---------- report: sidebar ----------
+  'side.aria': 'Audits',
+  'side.home': 'Home',
+  'side.favorites': 'My favorite',
+  'side.recents': 'Recent audits',
+  'side.locked.lead': 'Log in to save your history',
+  'side.locked.rest': 'Keep every channel you audit, on any device.',
+  'side.locked.cta': 'Log in',
+  'side.removeFavorite': 'Remove {name} from favorites',
+  'side.removeFavoriteShort': 'Remove from favorites',
+  'side.removeHistory': 'Remove {name} from history',
+  'side.removeHistoryShort': 'Remove from history',
+
+  // ---------- report: performance chart ----------
+  'chart.heading': "Every video vs. this channel's typical video",
+  // "Right"/"left" are literal and stay literal in every language: the chart is
+  // deliberately NOT mirrored in RTL (see the [dir="rtl"] block in App.css), so
+  // the bars grow rightwards for an Arabic reader too and the sentence holds.
+  'chart.sub': 'The line is normal for this channel. Right is better than normal, left is worse.',
+  'chart.above': 'Above normal',
+  'chart.below': 'Below normal',
+  'chart.tooNew': 'Too new to judge',
+  'chart.moreVideos': '{n} more videos',
+  'chart.showTable': 'Show as table',
+  'chart.colVideo': 'Video',
+  'chart.colViews': 'Views',
+  'chart.colVsNormal': 'vs. normal',
+  'chart.colAge': 'Age',
+
+  // ---------- report: inline fixers ----------
+  'fixer.about.cta': 'Write one for me',
+  'fixer.about.aria': 'Suggested About section',
+  'fixer.about.hint': 'Paste into YouTube Studio → Customization → Basic info.',
+  'fixer.drafting': 'Drafting…',
+  'fixer.chars': '{n} characters',
+  // Appended to the counter, so it opens with the dash that joins it on.
+  'fixer.stillShort': '— still under 200',
+  'fixer.copy': 'Copy',
+  'fixer.copied': 'Copied',
+  'fixer.retry': 'Try again',
+
+  // ---------- report: checklist ----------
+  // Keyed by the check id the API sends. A check added server-side without a
+  // key here degrades to the English label already in the response, not to a
+  // blank row — see tOr in i18n/index.jsx.
+  'check.label.banner': 'Channel banner',
+  'check.label.about': 'About section',
+  'check.label.keywords': 'Channel keywords',
+  'check.label.handle': 'Custom handle',
+  'check.label.tags': 'Video tags',
+  'check.label.descriptions': 'Video descriptions',
+  'check.label.titles': 'Title length',
+  'check.label.captions': 'Captions',
+  'check.label.hd': 'HD uploads',
+  'check.label.cadence': 'Upload consistency',
+  'check.label.recency': 'Posting recency',
+  'check.label.hit_rate': 'Hit rate',
+  'check.label.reach': 'Views per subscriber',
+  'check.label.engagement': 'Engagement',
+
+  // The findings. Separate keys per outcome rather than one string with a
+  // number in it: "every 1 days" is not a sentence, and "multiple a day" is a
+  // different claim rather than a smaller gap.
+  'check.detail.banner.set': 'Set',
+  'check.detail.banner.none': 'No banner uploaded',
+  'check.detail.about.chars': '{n} characters',
+  'check.detail.about.empty': 'Empty',
+  'check.detail.keywords.set': 'Set',
+  'check.detail.keywords.none': 'None set',
+  // The handle is a proper noun, rendered bare rather than in a sentence.
+  'check.detail.handle.claimed': '{handle}',
+  'check.detail.handle.none': 'Not claimed',
+  'check.detail.tags.detail': '{pct}% of {n} videos have 3+ tags',
+  'check.detail.descriptions.detail': '{pct}% are 250+ characters',
+  'check.detail.titles.detail': '{pct}% fall in the 30–70 character range',
+  'check.detail.captions.detail': '{pct}% have captions',
+  'check.detail.hd.detail': '{pct}% are HD',
+  'check.detail.cadence.daily': 'Multiple videos a day, typically',
+  'check.detail.cadence.everyDay': 'A new video every day, typically',
+  'check.detail.cadence.every': 'A new video every {n} days, typically',
+  'check.detail.cadence.unknown': 'Not enough upload history to judge',
+  'check.detail.recency.today': 'Published today',
+  'check.detail.recency.day': 'Last upload 1 day ago',
+  'check.detail.recency.days': 'Last upload {n} days ago',
+  'check.detail.recency.none': 'No uploads found',
+  'check.detail.hitRate.detail': "{pct}% of videos beat this channel's own median",
+  'check.detail.reach.detail': 'The median video reaches {pct}% of the subscriber count',
+  'check.detail.reach.hidden': 'Subscriber count is hidden on this channel',
+  'check.detail.engagement.detail': '{pct}% likes and comments per view, typically',
+  'check.detail.engagement.hidden': 'Likes and comments are hidden on this channel',
+
+  // The advice. Shown only on a warn or a fail — a passing check has nothing
+  // to fix, so the server sends an empty string and the row is hidden.
+  'check.fix.banner': "Add a 2560×1440 banner — it's the first thing a new visitor sees.",
+  'check.fix.about':
+    "Write 200+ characters covering what the channel is about and who it's for. This text is searchable.",
+  'check.fix.keywords':
+    'Add channel keywords in YouTube Studio → Settings → Channel → Basic info.',
+  'check.fix.handle': 'Claim a handle so the channel has a memorable URL.',
+  'check.fix.tags':
+    '{missing} videos need tags. Tags matter most for disambiguating topics YouTube might otherwise misread.',
+  'check.fix.descriptions':
+    'Short descriptions give YouTube nothing to index. Aim for 250+ characters with the topic stated in the first two lines.',
+  'check.fix.titles':
+    'Titles under 30 characters waste search real estate; over 70 get truncated before the hook lands.',
+  'check.fix.captions':
+    "Captioned videos are indexable and watchable muted. Auto-captions count, but only if you don't disable them.",
+  'check.fix.hd': 'Upload at 1080p or better.',
+  'check.fix.cadence':
+    'Gaps beyond two weeks cost you the algorithmic momentum that makes each upload easier than the last.',
+  'check.fix.recency':
+    'Three weeks of silence and the recommendation system stops treating the channel as active. Publishing anything restarts it.',
+  'check.fix.hit_rate':
+    'Most uploads land below your own average, which usually means the catalogue is carried by a few outliers. Study what they share.',
+  'check.fix.reach':
+    'Videos are mostly reaching people who already subscribed. Titles and thumbnails that assume no prior knowledge travel further.',
+  // Wording covers the warn band as well as failure, or a 3% channel reads
+  // advice about being "under 2%".
+  'check.fix.engagement':
+    'Healthy channels sit above 4.5%. Below that, the content is being found but not connecting — ask for the like on camera and end on a question worth answering.',
+
   // ---------- landing: hero ----------
   'landing.hero.kicker': 'Free · Instant results · Public data only',
   // Split because the design italicises the middle. Two keys rather than
@@ -183,6 +321,17 @@ export const en = {
   // ---------- landing: guides ----------
   'landing.guides.heading': 'Read more',
   'landing.guides.lede': 'Longer answers on how the score is built and what to do with it.',
+  // The destination pages are English. These labels are translated anyway, so
+  // the list reads as part of the page it sits in — the link carries hrefLang
+  // to declare where it actually leads. See the note beside GUIDES.
+  'landing.guides.free': 'What the free audit includes',
+  'landing.guides.score': 'How the score out of 100 is calculated',
+  'landing.guides.competitor': "Analysing a competitor's channel",
+  'landing.guides.small': 'Why this works for small channels',
+  'landing.guides.versus': 'How this compares to vidIQ and TubeBuddy',
+  'landing.guides.checklist': 'The fourteen checks, ordered by what to fix first',
+  'landing.guides.views': 'Why your views are dropping',
+  'landing.guides.upload': 'How often you should upload',
 
   // ---------- landing: closing CTA ----------
   'landing.cta.heading': 'Turn the score into a plan',
