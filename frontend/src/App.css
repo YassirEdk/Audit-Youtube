@@ -3583,3 +3583,288 @@ footer p {
     scroll-behavior: auto;
   }
 }
+
+/* ---------- language switcher ---------- */
+
+/* Sits between the donate link and the account corner. A button plus a popup
+   list — see the note at the top of LanguageSwitcher.jsx for why this isn't a
+   <select>. The popup borrows .yt-menu's geometry so the two masthead menus
+   read as the same object. */
+.yt-lang {
+  position: relative;
+  display: inline-flex;
+}
+
+.yt-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: none;
+  border: 0;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.yt-lang-btn:hover,
+.yt-lang-btn[aria-expanded="true"] {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.yt-lang-btn svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.yt-lang-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  padding: 0.375rem 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 32px rgb(0 0 0 / 50%);
+  z-index: 60;
+}
+
+.yt-lang-item {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 1rem;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.yt-lang-item:hover {
+  background: var(--surface-2);
+}
+
+/* The current language, marked with a tick in the gutter rather than a
+   background fill: a filled row next to a hovered row reads as two
+   selections. */
+.yt-lang-item.is-active {
+  font-weight: 500;
+}
+
+.yt-lang-item.is-active::before {
+  content: "✓";
+  margin-right: 0.5rem;
+  color: var(--text-2);
+}
+
+.yt-lang-item:not(.is-active)::before {
+  content: "";
+  display: inline-block;
+  /* Matches the tick's advance width so the labels line up in both states. */
+  width: 1.05em;
+}
+
+/* Below the breakpoint where the masthead gets tight, the globe alone carries
+   it — the language name is the first thing that can go. */
+@media (max-width: 800px) {
+  .yt-lang-current {
+    display: none;
+  }
+}
+
+/* The popup opens from the other corner when the page is mirrored, and the
+   tick moves to the other side of the label. */
+[dir="rtl"] .yt-lang-menu {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] .yt-lang-item {
+  text-align: right;
+}
+
+[dir="rtl"] .yt-lang-item.is-active::before {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* Marks a link that leads to an English-only document. Deliberately quiet —
+   it is a caveat, not a label, and it sits after the link text. */
+.guide-lang {
+  font-size: 0.78rem;
+  color: var(--text-3, var(--text-2));
+  white-space: nowrap;
+}
+
+/* ---------- right-to-left (Arabic) ---------- */
+
+/*
+ * Everything below is driven by <html dir="rtl">, set by I18nProvider.
+ *
+ * This is an override layer rather than a rewrite of the ~50 physical
+ * properties above into logical ones. That was the alternative and it was
+ * rejected on risk: `left`/`right` appear in absolute positioning, borders,
+ * padding and transforms across 3,600 lines, and converting them wholesale
+ * would touch every layout in the app to fix one. This block changes only what
+ * is visibly wrong when mirrored, and leaves the LTR rendering untouched by
+ * construction — no selector here matches without dir="rtl" on the root.
+ *
+ * NOT mirrored, on purpose:
+ *   - the performance chart. Its x-axis is time, and a time axis that runs
+ *     right-to-left is not a localisation, it is a different chart. Arabic
+ *     readers see left-to-right charts everywhere for the same reason.
+ *   - the score ring. It fills clockwise from the top in every language;
+ *     clockwise is not a reading direction.
+ *   - the YouTube logo and the spinner, which are brand and motion rather
+ *     than text.
+ */
+
+[dir="rtl"] .yt-nav {
+  margin-left: 0;
+  margin-right: 0.75rem;
+}
+
+[dir="rtl"] .yt-nav-item {
+  text-align: right;
+}
+
+[dir="rtl"] .yt-logo-text sup {
+  margin-left: 0;
+  margin-right: 1px;
+}
+
+/* The search field's internal dividers sit between the input, the depth select
+   and the submit button — the divider has to move to whichever edge now faces
+   the input. */
+[dir="rtl"] .search select,
+[dir="rtl"] .search button[type="submit"] {
+  border-left: 0;
+  border-right: 1px solid var(--border);
+}
+
+[dir="rtl"] .search.lg input[type="text"] {
+  padding-left: 0;
+  padding-right: 24px;
+}
+
+[dir="rtl"] .suggest-busy {
+  right: auto;
+  left: 12px;
+}
+
+/* The +/− affordance on a details element, and the tick on the CTA list: both
+   are drawn from rotated borders, so mirroring means moving the element *and*
+   swapping which border carries the colour. */
+[dir="rtl"] .faq summary::after {
+  right: auto;
+  left: 20px;
+}
+
+[dir="rtl"] .cta-list li::before {
+  left: auto;
+  right: 4px;
+  border-left: 0;
+  border-right: 2px solid var(--ok);
+}
+
+[dir="rtl"] .cta-list li {
+  padding: 5px 28px 5px 0;
+}
+
+[dir="rtl"] .scorecard-pts {
+  text-align: left;
+}
+
+[dir="rtl"] .scorecard-note {
+  padding-left: 0;
+  padding-right: var(--gap);
+}
+
+[dir="rtl"] .row-label .views.is-live {
+  text-align: left;
+}
+
+[dir="rtl"] .fixer-count {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+[dir="rtl"] .save-btn {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .fav-heart,
+[dir="rtl"] .lock-icon {
+  margin-right: 0;
+  margin-left: 0.4rem;
+}
+
+[dir="rtl"] .row-chevron,
+[dir="rtl"] .row-fix {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+/* The accent stripe on an error banner belongs on the reading edge — on the
+   left in LTR, on the right here. */
+[dir="rtl"] .banner.error {
+  border-left: 0;
+  border-right: 4px solid var(--bad);
+}
+
+/* Menus and close buttons anchor to the corner nearest the control that opens
+   them, which is now the other corner. */
+[dir="rtl"] .yt-menu {
+  right: auto;
+  left: 0;
+}
+
+[dir="rtl"] .auth-close {
+  right: auto;
+  left: 0.75rem;
+}
+
+[dir="rtl"] .recent-remove,
+[dir="rtl"] .side-remove {
+  right: auto;
+  left: 6px;
+}
+
+/* Report prose comes from the model in Arabic, so its lists and quotes mirror
+   with the rest of the text. */
+[dir="rtl"] .report ol,
+[dir="rtl"] .report ul {
+  padding-left: 0;
+  padding-right: 1.3rem;
+}
+
+[dir="rtl"] .report blockquote {
+  padding-left: 0;
+  padding-right: 1rem;
+  border-left: 0;
+  border-right: 3px solid var(--border);
+}
+
+/* Held left-to-right against the mirrored page — see the note above. `direction`
+   rather than `dir` on the element so it applies to the SVG's own text nodes
+   (the axis labels) as well as the box. */
+[dir="rtl"] .chart,
+[dir="rtl"] .chart svg {
+  direction: ltr;
+}
+
+/* Latin-script text inside an Arabic sentence — a channel handle, a provider
+   name — keeps its own direction so punctuation lands at the correct end. */
+[dir="rtl"] .results-target,
+[dir="rtl"] .scorecard-earns {
+  unicode-bidi: isolate;
+}

@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react'
 import { Avatar } from './Avatar.jsx'
 import { Gated } from './Locked.jsx'
+import { useI18n, useT } from './i18n/index.jsx'
 
 const RADIUS = 54
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
@@ -54,13 +55,18 @@ function useCountUp(target, duration = 900) {
   return value
 }
 
+// Group headings are catalogue keys; the ids are api/score.py's check ids and
+// stay in English because they are data, not text — the server sends them and
+// nothing renders them.
 const GROUPS = [
-  { title: 'Channel setup', ids: ['banner', 'about', 'keywords', 'handle'] },
-  { title: 'Video metadata', ids: ['tags', 'descriptions', 'titles', 'captions', 'hd'] },
-  { title: 'Habits & reach', ids: ['cadence', 'hit_rate', 'engagement'] },
+  { key: 'setup', ids: ['banner', 'about', 'keywords', 'handle'] },
+  { key: 'metadata', ids: ['tags', 'descriptions', 'titles', 'captions', 'hd'] },
+  { key: 'habits', ids: ['cadence', 'hit_rate', 'engagement'] },
 ]
 
 export function ScoreCard({ health, channel }) {
+  const t = useT()
+  const { formatNumber } = useI18n()
   const { score, grade, passed, warned, failed } = health
   const tone = toneFor(score)
   const shown = useCountUp(score)
@@ -68,7 +74,11 @@ export function ScoreCard({ health, channel }) {
   return (
     <section className={`score-card tone-${tone} edge-lit reveal`}>
       <div className="score-ring">
-        <svg viewBox="0 0 128 128" role="img" aria-label={`Health score ${score} out of 100, grade ${grade}`}>
+        <svg
+          viewBox="0 0 128 128"
+          role="img"
+          aria-label={t('score.ariaRing', { score, grade })}
+        >
           <circle className="ring-track" cx="64" cy="64" r={RADIUS} />
           <circle
             className="ring-value"
@@ -84,7 +94,7 @@ export function ScoreCard({ health, channel }) {
           {/* aria-hidden: the accessible score lives on the svg's label above,
               where it's stable — this one is mid-animation most of the time. */}
           <span className="ring-score" aria-hidden="true">
-            {shown}
+            {formatNumber(shown)}
           </span>
           <span className="ring-grade">{grade}</span>
         </div>
@@ -96,17 +106,17 @@ export function ScoreCard({ health, channel }) {
           {channel.title}
         </h2>
         <p className="score-lede">
-          Channel health score, from {passed + warned + failed} automated checks.
+          {t('score.lede', { n: passed + warned + failed })}
         </p>
         <div className="score-tally">
           <span className="tally ok">
-            <b>{passed}</b> passed
+            <b>{formatNumber(passed)}</b> {t('score.passed')}
           </span>
           <span className="tally warn">
-            <b>{warned}</b> need work
+            <b>{formatNumber(warned)}</b> {t('score.needWork')}
           </span>
           <span className="tally bad">
-            <b>{failed}</b> failed
+            <b>{formatNumber(failed)}</b> {t('score.failed')}
           </span>
         </div>
       </div>
@@ -153,10 +163,12 @@ function splitAtCheck(groups, limit) {
  * one-line change rather than a refactor.
  */
 export function Checklist({ health, fixers = {}, locked = false }) {
+  const t = useT()
   const byId = Object.fromEntries(health.checks.map((c) => [c.id, c]))
 
   const groups = GROUPS.map((g) => ({
-    title: g.title,
+    key: g.key,
+    title: t(`score.group.${g.key}`),
     checks: g.ids.map((id) => byId[id]).filter(Boolean),
   })).filter((g) => g.checks.length)
 
@@ -165,7 +177,7 @@ export function Checklist({ health, fixers = {}, locked = false }) {
   const [free, rest] = gated ? splitAtCheck(groups, FREE_CHECKS) : [groups, []]
 
   const renderGroup = (group, gi) => (
-    <div key={group.title} className="check-group" style={{ '--i': gi }}>
+    <div key={group.key} className="check-group" style={{ '--i': gi }}>
       {!group.continued && <h3>{group.title}</h3>}
       {group.checks.map((c) => (
         <div key={c.id} className={`check is-${c.status}`}>
@@ -188,7 +200,9 @@ export function Checklist({ health, fixers = {}, locked = false }) {
             )}
             {c.status !== 'pass' && c.status !== 'skip' && fixers[c.id]}
           </div>
-          <span className="sr-only">{c.status}</span>
+          {/* The status word for screen readers — the icon beside it is a
+              glyph they'd otherwise read as punctuation or skip entirely. */}
+          <span className="sr-only">{t(`score.status.${c.status}`)}</span>
         </div>
       ))}
     </div>
@@ -198,7 +212,9 @@ export function Checklist({ health, fixers = {}, locked = false }) {
     <section className="checklist reveal">
       {free.map(renderGroup)}
       {gated ? (
-        <Gated label={`${total - FREE_CHECKS} more checks`}>{rest.map(renderGroup)}</Gated>
+        <Gated label={t('score.moreChecks', { n: total - FREE_CHECKS })}>
+          {rest.map(renderGroup)}
+        </Gated>
       ) : (
         rest.map(renderGroup)
       )}

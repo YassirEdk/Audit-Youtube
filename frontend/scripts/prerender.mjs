@@ -12,6 +12,13 @@ import { build } from 'vite'
 import { readFileSync, writeFileSync, rmSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { PAGES, renderPage } from './pages.mjs'
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  LOCALE_CODES,
+  PREFIXED_CODES,
+  localePrefix,
+} from '../src/i18n/locales.js'
 
 /**
  * When the landing copy last meaningfully changed — the sitemap's lastmod for
@@ -47,7 +54,7 @@ try {
   })
 
   const { render } = await import(`file://${resolve(outDir, 'prerender.mjs')}`)
-  const html = render()
+  const html = render(DEFAULT_LOCALE)
 
   const indexPath = resolve(root, 'dist/index.html')
   const index = readFileSync(indexPath, 'utf8')
@@ -67,6 +74,28 @@ try {
         'add them to GUIDES in src/Landing.jsx',
     )
   }
+
+  /**
+   * The hreflang cluster: every language's /Home, plus x-default.
+   *
+   * Three rules Google enforces and this satisfies by construction:
+   *   1. the set is identical on every page in it, which is why it's built once
+   *      here rather than per-locale;
+   *   2. every entry is absolute;
+   *   3. it is self-referential — each page lists its own URL too. A cluster
+   *      where /fr/Home doesn't name /fr/Home is discarded silently.
+   *
+   * x-default points at English: it is what a visitor whose language isn't one
+   * of the five should land on, not a redirect target.
+   */
+  const hreflangs = (site) =>
+    [
+      ...LOCALE_CODES.map(
+        (code) =>
+          `<link rel="alternate" hreflang="${LOCALES[code].htmlLang}" href="${site}${localePrefix(code)}/Home" />`,
+      ),
+      `<link rel="alternate" hreflang="x-default" href="${site}/Home" />`,
+    ].join('\n  ')
 
   let out = index.replace('<div id="root"></div>', `<div id="root">${html}</div>`)
 
@@ -90,6 +119,7 @@ try {
     // to nothing and the card falls back to a blank rectangle.
     const head = [
       `<link rel="canonical" href="${site}/Home" />`,
+      hreflangs(site),
       `<meta property="og:url" content="${site}/Home" />`,
       `<meta property="og:image" content="${site}/og.png" />`,
       `<meta property="og:image:width" content="1200" />`,
@@ -129,6 +159,35 @@ try {
       writeFileSync(resolve(dir, 'index.html'), renderPage(page, site))
     }
 
+    // One prerendered landing page per translated locale, at dist/<code>/Home/.
+    //
+    // Written as a directory index for the same reason the content pages are:
+    // it resolves at /fr/Home with no `cleanUrls` setting, which would have
+    // redirected the Search Console verification file. And it has to be a real
+    // file rather than relying on the catch-all rewrite, because a rewrite
+    // serves the *English* index.html — a crawler at /fr/Home would then see
+    // English markup and Google would drop the page from the hreflang cluster
+    // as a duplicate of /Home.
+    //
+    // <html lang> and dir are stamped here too. React sets them on mount, but
+    // that is after the crawler has read the document.
+    for (const code of PREFIXED_CODES) {
+      const { htmlLang, dir } = LOCALES[code]
+      const localised = index
+        .replace('<div id="root"></div>', `<div id="root">${render(code)}</div>`)
+        .replace('<html lang="en">', `<html lang="${htmlLang}" dir="${dir}">`)
+        .replace(
+          '</head>',
+          `  <link rel="canonical" href="${site}/${code}/Home" />\n  ${hreflangs(site)}\n  ` +
+            `<meta property="og:url" content="${site}/${code}/Home" />\n  ` +
+            `<meta property="og:image" content="${site}/og.png" />\n  </head>`,
+        )
+
+      const dirPath = resolve(root, `dist/${code}/Home`)
+      mkdirSync(dirPath, { recursive: true })
+      writeFileSync(resolve(dirPath, 'index.html'), localised)
+    }
+
     // One entry per URL that actually resolves to distinct content. Generated
     // from the same PAGES array the documents come from, so a page can never
     // ship unlisted and the sitemap can never list a 404.
@@ -138,8 +197,14 @@ try {
     // both, and Bing does the same with priority. A priority of 1.0 on the app
     // and 0.7 on the guides described an intention no crawler ever read, which
     // made this file look like it was doing more work than it was.
+    // Each language's /Home is its own URL with its own content, so each gets a
+    // sitemap entry. The guide slugs appear once: they are English-only
+    // documents, and listing /fr/<slug> would list a 404.
     const urls = [
-      { loc: `${site}/Home`, lastmod: HOME_UPDATED },
+      ...LOCALE_CODES.map((code) => ({
+        loc: `${site}${localePrefix(code)}/Home`,
+        lastmod: HOME_UPDATED,
+      })),
       ...PAGES.map((p) => ({ loc: `${site}/${p.slug}`, lastmod: p.updated })),
     ]
 

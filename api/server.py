@@ -42,6 +42,14 @@ app = FastAPI(title="YouTube Audit")
 class AuditRequest(BaseModel):
     channel: str
     videos: int = 50
+    # The reader's language, as a locale code from frontend/src/i18n/locales.js.
+    # Only the written report uses it today — build_prompt appends a "write in
+    # X" rule for anything other than "en". The deterministic checklist is still
+    # emitted in English; see the note in api/score.py.
+    #
+    # Defaulted rather than required so an older client, or a direct API call,
+    # keeps working unchanged.
+    lang: str = "en"
 
 
 class TitleRequest(AuditRequest):
@@ -333,7 +341,7 @@ def run_report(req: AuditRequest, authorization: str = Header(default="")) -> St
 
     channel, videos = _fetch(req, user_id)
     health_data = audit.summarize(channel, videos)["health"]
-    return _stream_llm(audit.build_prompt(channel, videos, health_data))
+    return _stream_llm(audit.build_prompt(channel, videos, health_data, req.lang))
 
 
 @app.post("/api/analyse/video")

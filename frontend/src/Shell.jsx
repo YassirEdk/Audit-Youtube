@@ -8,12 +8,18 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { LanguageSwitcher } from './LanguageSwitcher.jsx'
+import { useT } from './i18n/index.jsx'
 import { useAuth } from './useAuth.js'
 
+// Labels are catalogue keys rather than text: this array is module-level, so it
+// is built once before any component renders and cannot call a hook. Resolving
+// the key at render is also what makes a language switch re-label the nav
+// without a reload.
 const NAV = [
   {
     id: null,
-    label: 'Home',
+    labelKey: 'nav.home',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 4.44 19 11v8.5h-4.5v-6h-5v6H5V11l7-6.56Zm0-1.37L4 10.5v10h6.5v-6h3v6H20v-10L12 3.07Z" />
@@ -22,7 +28,7 @@ const NAV = [
   },
   {
     id: 'checks',
-    label: 'Checklist',
+    labelKey: 'nav.checks',
     // Ticked rows rather than the single large tick this used to be: a bare
     // tick reads as "done", which is what a results page means, not "here is
     // the list of things measured".
@@ -40,7 +46,7 @@ const NAV = [
   },
   {
     id: 'how',
-    label: 'How it works',
+    labelKey: 'nav.how',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 1.2a7.8 7.8 0 1 1 0 15.6 7.8 7.8 0 0 1 0-15.6Z" />
@@ -50,7 +56,7 @@ const NAV = [
   },
   {
     id: 'faq',
-    label: 'FAQ',
+    labelKey: 'nav.faq',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M11.3 15h1.4v1.4h-1.4V15Zm.7-8c-1.7 0-3 1.3-3 3h1.4c0-.9.7-1.6 1.6-1.6s1.6.7 1.6 1.6c0 .6-.3.9-.9 1.4-.8.6-1.4 1.1-1.4 2.4h1.4c0-.7.3-1 .9-1.5.8-.6 1.4-1.2 1.4-2.3 0-1.7-1.3-3-3-3Zm0-4a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 1.2a7.8 7.8 0 1 1 0 15.6 7.8 7.8 0 0 1 0-15.6Z" />
@@ -59,7 +65,7 @@ const NAV = [
   },
   {
     id: 'guides',
-    label: 'Read more',
+    labelKey: 'nav.guides',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 6.3A9.4 9.4 0 0 0 6.5 4.6c-1.2 0-2.4.2-3.5.6v12.4c1.1-.4 2.3-.6 3.5-.6 2 0 4 .6 5.5 1.7 1.5-1.1 3.5-1.7 5.5-1.7 1.2 0 2.4.2 3.5.6V5.2c-1.1-.4-2.3-.6-3.5-.6-2 0-4 .6-5.5 1.7Zm-.6 10.9a10.6 10.6 0 0 0-4.9-1.2c-.8 0-1.5.1-2.3.3V6.1c.7-.2 1.5-.3 2.3-.3 1.7 0 3.4.4 4.9 1.2v10.2Zm1.2 0V7c1.5-.8 3.2-1.2 4.9-1.2.8 0 1.6.1 2.3.3v10.2c-.8-.2-1.5-.3-2.3-.3-1.7 0-3.4.4-4.9 1.2Z" />
@@ -68,9 +74,9 @@ const NAV = [
   },
 ]
 
-function YouTubeLogo() {
+function YouTubeLogo({ label }) {
   return (
-    <span className="yt-logo" aria-label="Channel Audit home">
+    <span className="yt-logo" aria-label={label}>
       <svg viewBox="0 0 28 20" className="yt-logo-mark" aria-hidden="true">
         <path
           fill="#f00"
@@ -126,6 +132,7 @@ function useScrolled() {
  */
 function UserMenu() {
   const { user, signOut } = useAuth()
+  const t = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -152,7 +159,7 @@ function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Account"
+        aria-label={t('nav.account')}
       >
         {avatarUrl ? (
           <img src={avatarUrl} alt="" referrerPolicy="no-referrer" />
@@ -168,7 +175,7 @@ function UserMenu() {
             <span>{user.email}</span>
           </div>
           <button type="button" className="plain yt-signout" role="menuitem" onClick={() => signOut()}>
-            Sign out
+            {t('nav.signOut')}
           </button>
         </div>
       )}
@@ -176,8 +183,17 @@ function UserMenu() {
   )
 }
 
-export function Shell({ active, onNavigate, headerSearch, sidebar, children }) {
+export function Shell({
+  active,
+  onNavigate,
+  headerSearch,
+  sidebar,
+  locale,
+  onLocaleChange,
+  children,
+}) {
   const { user, loading, requestAuth } = useAuth()
+  const t = useT()
   const scrolled = useScrolled()
 
   return (
@@ -185,22 +201,25 @@ export function Shell({ active, onNavigate, headerSearch, sidebar, children }) {
       <header className={`yt-header ${scrolled ? 'is-scrolled' : ''}`}>
         <div className="yt-header-start">
           <button type="button" className="yt-brand" onClick={() => onNavigate(null)}>
-            <YouTubeLogo />
+            <YouTubeLogo label={t('nav.brandAria')} />
           </button>
 
           {/* Hidden on report pages: those sections live on the landing page,
               and the sidebar carries the navigation that's useful here. */}
           {!sidebar && (
-          <nav className="yt-nav" aria-label="Sections">
+          <nav className="yt-nav" aria-label={t('nav.sectionsAria')}>
             {NAV.map((item) => (
               <button
                 type="button"
-                key={item.label}
+                // Keyed on the stable id rather than the label, which now
+                // changes with the language — a key that moves on a locale
+                // switch would remount every button for no reason.
+                key={item.labelKey}
                 className={`yt-nav-item ${active === item.id ? 'is-active' : ''}`}
                 onClick={() => onNavigate(item.id)}
               >
                 <span className="yt-nav-icon">{item.icon}</span>
-                {item.label}
+                {t(item.labelKey)}
               </button>
             ))}
           </nav>
@@ -224,21 +243,27 @@ export function Shell({ active, onNavigate, headerSearch, sidebar, children }) {
             href="https://paypal.me/GrizzlyProd1"
             target="_blank"
             rel="noopener noreferrer"
-            title="Support this project"
+            title={t('nav.donateTitle')}
           >
             <HeartIcon />
-            <span>Donate For Me</span>
+            <span>{t('nav.donate')}</span>
           </a>
+
+          {/* Outside the session branch on purpose: the one control a visitor
+              may need before they can read anything else has to be in the same
+              place whether or not they're signed in, and has to be there while
+              the session is still loading. */}
+          <LanguageSwitcher locale={locale} onChange={onLocaleChange} />
 
           {loading ? null : user ? (
             <UserMenu />
           ) : (
             <>
               <button type="button" className="yt-ghost" onClick={() => requestAuth('login')}>
-                Log in
+                {t('nav.login')}
               </button>
               <button type="button" className="yt-signup" onClick={() => requestAuth('signup')}>
-                Sign up
+                {t('nav.signup')}
               </button>
             </>
           )}

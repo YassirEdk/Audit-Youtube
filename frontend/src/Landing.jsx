@@ -4,6 +4,7 @@ import { RecentStrip } from './RecentStrip.jsx'
 import { readDepth } from './depth.js'
 import { FREE_VIDEOS } from './limits.js'
 import { useAuth, useLocked } from './useAuth.js'
+import { useT } from './i18n/index.jsx'
 import { SearchIcon } from './Shell.jsx'
 
 /**
@@ -54,86 +55,72 @@ const Icon = {
   ),
 }
 
+// Icon plus catalogue key. The prose moved to i18n/catalogues/en.js; what stays
+// here is the pairing and the order, which are design decisions rather than
+// text and shouldn't be duplicated into five files.
 const CHECKS = [
-  {
-    icon: Icon.setup,
-    title: 'Channel setup',
-    body: 'Banner, About section, keywords, and handle — the metadata a new visitor and the search index both read first.',
-  },
-  {
-    icon: Icon.metadata,
-    title: 'Video metadata',
-    body: 'Tags, description length, title length, captions, and upload quality across every recent video.',
-  },
-  {
-    icon: Icon.cadence,
-    title: 'Upload consistency',
-    body: 'How regularly you publish, measured as the typical gap between uploads rather than an average one hiatus can distort.',
-  },
-  {
-    icon: Icon.recency,
-    title: 'Posting recency',
-    body: 'How long since the last upload. A channel can have published like clockwork for two years and still have gone quiet — consistency alone would never catch it.',
-  },
-  {
-    icon: Icon.hitrate,
-    title: 'Hit rate',
-    body: 'How many videos beat your own median — not some global benchmark that punishes small channels for being small.',
-  },
-  {
-    icon: Icon.reach,
-    title: 'Reach and engagement',
-    body: 'Views per subscriber, plus likes and comments against views. Together they answer whether videos travel past the people already subscribed.',
-  },
+  { icon: Icon.setup, key: 'setup' },
+  { icon: Icon.metadata, key: 'metadata' },
+  { icon: Icon.cadence, key: 'cadence' },
+  { icon: Icon.recency, key: 'recency' },
+  { icon: Icon.hitrate, key: 'hitrate' },
+  { icon: Icon.reach, key: 'reach' },
 ]
 
 /**
  * The fourteen checks with what each is worth and what earns the points.
  *
- * The four cards above say which *categories* are graded; this says exactly
- * what the grader looks for, which is the question someone actually has before
- * they paste a handle. It is also the "every point is traceable to a named
- * check" claim made checkable instead of asserted.
+ * The cards above say which *categories* are graded; this says exactly what the
+ * grader looks for, which is the question someone actually has before they
+ * paste a handle. It is also the "every point is traceable to a named check"
+ * claim made checkable instead of asserted.
  *
  * SOURCE OF TRUTH IS api/score.py. Every number here is read from there — the
  * weights are its sixth `_check()` argument, and each threshold is the `good`
  * argument of the matching `_band()` call. Change a weight there and this goes
  * stale silently, which is the one real cost of stating it this precisely.
- * `points` per group is asserted against the items below at render time.
+ *
+ * Each row is [catalogue key, points, threshold vars]. The thresholds stayed
+ * here as numbers rather than moving into the sentences in the catalogue, and
+ * that is the important part: they are score.py's values, not copy. Written
+ * into a translated string they would be a dozen chances for "200+ characters"
+ * to come back as "150+" from a translator with no way to know it was
+ * load-bearing — and the page would then be confidently, invisibly wrong about
+ * what earns the points.
  */
 const SCORECARD = [
   {
-    group: 'Channel setup',
+    group: 'setup',
     items: [
-      ['Channel banner', 5, 'Uploaded'],
-      ['About section', 7, '200+ characters'],
-      ['Channel keywords', 4, 'Set in Studio'],
-      ['Custom handle', 4, 'Claimed'],
+      ['banner', 5, null],
+      ['about', 7, { n: 200 }],
+      ['keywords', 4, null],
+      ['handle', 4, null],
     ],
   },
   {
-    group: 'Video metadata',
+    group: 'metadata',
     items: [
-      ['Video tags', 10, '80% of videos carry 3+ tags'],
-      ['Video descriptions', 10, '70% run to 250+ characters'],
-      ['Title length', 7, '70% land in 30–70 characters'],
-      ['Captions', 5, '50% are captioned'],
-      ['HD uploads', 4, '90% are 1080p or better'],
+      ['tags', 10, { pct: 80 }],
+      ['descriptions', 10, { pct: 70, n: 250 }],
+      ['titles', 7, { pct: 70 }],
+      ['captions', 5, { pct: 50 }],
+      ['hd', 4, { pct: 90 }],
     ],
   },
   {
-    group: 'Upload habits',
+    group: 'habits',
     items: [
-      ['Upload consistency', 10, 'A new video every 14 days or sooner'],
-      ['Posting recency', 8, 'Something published in the last 21 days'],
+      ['cadence', 10, { n: 14 }],
+      ['recency', 8, { n: 21 }],
     ],
   },
   {
-    group: 'Performance',
+    group: 'performance',
     items: [
-      ['Hit rate', 10, '40% of videos beat the channel median'],
-      ['Views per subscriber', 8, 'The median video reaches 15% of subscribers'],
-      ['Engagement', 8, 'Likes and comments above 4.5% of views'],
+      ['hitRate', 10, { pct: 40 }],
+      ['vps', 8, { pct: 15 }],
+      ['engagement', 8, { pct: 4.5 }],
     ],
   },
 ]
@@ -148,40 +135,9 @@ const SCORECARD = [
  */
 const SCORECARD_MAX = Math.max(...SCORECARD.flatMap((g) => g.items.map(([, pts]) => pts)))
 
-const FAQ = [
-  {
-    q: 'Can I audit a channel I don\'t own?',
-    a: 'Yes. Everything comes from public YouTube data, so you can audit any channel — including a competitor\'s.',
-  },
-  {
-    q: 'How is the score calculated?',
-    a: 'Fourteen checks, each worth a fixed number of points that add up to 100. Passing earns full points, a partial pass earns half, and anything we cannot observe is excluded rather than counted against you. Every point is traceable to a named check in your results.',
-  },
-  {
-    q: "What can't it see?",
-    a: 'Retention, click-through rate, impressions, and traffic sources live in YouTube Studio and need the channel owner\'s login. This audit reasons from views, titles, and metadata — genuinely useful for spotting packaging and topic patterns, but it cannot tell you whether a video failed because the thumbnail went unclicked or because viewers left early.',
-  },
-  {
-    q: 'How is this different from vidIQ or TubeBuddy?',
-    a: "Those are full channel-management suites — keyword research, bulk tag editing, competitor tracking — and they generally ask you to install a browser extension and connect your YouTube account. This is deliberately narrower: paste any channel handle and get a scored audit of what is publicly visible, with nothing to install and no account to connect. Because it reads only public data it can audit channels you don't own, which is the trade in both directions: it will never show you the private Studio metrics those tools surface once you've connected.",
-  },
-  {
-    q: 'Is there a free YouTube channel audit tool?',
-    a: "This is one. Scoring a channel costs nothing and needs no account — you get the health score, the performance chart measured against the channel's own median, and a sample of the checklist. A free account opens the full fourteen-check breakdown, deeper scans of up to 100 videos, and the written report.",
-  },
-  {
-    q: "Can I use this to analyse a competitor's channel?",
-    a: 'Yes, and it is one of the more useful ways to run it. Every check works from public data, so a competitor audit reads exactly the same as your own: which of their videos beat their typical performance, how their titles and descriptions are built, and which parts of their setup are left undone.',
-  },
-  {
-    q: 'Does this work for small channels?',
-    a: "Yes, and it is built for them. Because every check is scored against the channel's own median rather than a global benchmark, a channel with 400 subscribers is measured on whether its videos beat its own typical video — not on whether it beats somebody with a million. Nothing here penalises a channel for being small, and the setup and metadata checks are the ones that tend to matter most early on.",
-  },
-  {
-    q: 'Why compare against my own median instead of other channels?',
-    a: 'Because a 10,000-view video is a triumph on one channel and a disaster on another. Scoring against your own median tells you which of your videos actually outperformed, and using the median rather than the mean stops one viral hit from making everything else look like a failure.',
-  },
-]
+// Question/answer pairs live in the catalogue; this is just how many there
+// are, so the FAQ and its FAQPage schema are generated from one list.
+const FAQ = [1, 2, 3, 4, 5, 6, 7, 8]
 
 /**
  * FAQPage structured data, built from the same FAQ array the page renders.
@@ -191,13 +147,17 @@ const FAQ = [
  * a violation, which is the same trap as hiding text.
  */
 function FaqSchema() {
+  const t = useT()
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: FAQ.map((f) => ({
+    // Emitted in whatever language the page is rendering. Schema that disagrees
+    // with the visible text is treated as a violation, so an English block on a
+    // French page would be worse than no block at all.
+    mainEntity: FAQ.map((n) => ({
       '@type': 'Question',
-      name: f.q,
-      acceptedAnswer: { '@type': 'Answer', text: f.a },
+      name: t(`landing.faq.q${n}`),
+      acceptedAnswer: { '@type': 'Answer', text: t(`landing.faq.a${n}`) },
     })),
   }
   return (
@@ -247,6 +207,7 @@ function scrollToSearch() {
 
 function AuditForm({ onSubmit, autoFocus = false, size = '' }) {
   const locked = useLocked()
+  const t = useT()
   const { requestAuth } = useAuth()
   const [channel, setChannel] = useState('')
   const [videos, setVideos] = useState(readDepth)
@@ -284,20 +245,31 @@ function AuditForm({ onSubmit, autoFocus = false, size = '' }) {
         // Picking a suggestion is the submit — making someone choose a channel
         // and then press the button as well is a step that means nothing.
         onPick={(handle) => onSubmit(handle, videos)}
-        placeholder="Channel name   ·   @handle   ·   youtube.com/@channel"
-        ariaLabel="YouTube channel name, handle, or ID"
+        placeholder={t('landing.form.placeholder')}
+        ariaLabel={t('landing.form.ariaChannel')}
         autoFocus={autoFocus}
       />
       <select
         value={videos}
         onChange={(e) => chooseVideos(Number(e.target.value))}
-        aria-label="How many recent videos to analyze"
+        aria-label={t('landing.form.ariaDepth')}
       >
-        <option value={20}>20 videos</option>
-        <option value={50}>{locked ? '50 videos — sign up' : '50 videos'}</option>
-        <option value={100}>{locked ? '100 videos — sign up' : '100 videos'}</option>
+        {/* Generated rather than three literals: the "— sign up" suffix is part
+            of the sentence in every language, and hand-writing six options was
+            how the locked and unlocked labels drifted apart before. */}
+        {[20, 50, 100].map((n) => (
+          <option key={n} value={n}>
+            {locked && n > FREE_VIDEOS
+              ? t('landing.form.videosLocked', { n })
+              : t('landing.form.videos', { n })}
+          </option>
+        ))}
       </select>
-      <button type="submit" aria-label="Audit channel" title="Audit channel">
+      <button
+        type="submit"
+        aria-label={t('landing.form.submit')}
+        title={t('landing.form.submit')}
+      >
         <SearchIcon />
       </button>
     </form>
@@ -305,46 +277,43 @@ function AuditForm({ onSubmit, autoFocus = false, size = '' }) {
 }
 
 export function Landing({ onStart }) {
+  const t = useT()
+
   return (
     <>
       <header className="hero">
-        <p className="kicker">Free · Instant results · Public data only</p>
+        <p className="kicker">{t('landing.hero.kicker')}</p>
+        {/* Three fragments rather than one string with <em> in the middle: the
+            emphasised phrase lands in a different position in French and
+            Arabic, and a translator can move it by leaving titleAfter empty. */}
         <h1>
-          Find out what's holding <em>your channel</em> back
+          {t('landing.hero.titleBefore')} <em>{t('landing.hero.titleEm')}</em>{' '}
+          {t('landing.hero.titleAfter')}
         </h1>
-        <p className="sub">
-          A health score out of 100 from fourteen automated checks, every recent
-          video graded against your own average, and a written breakdown of
-          what to fix first.
-        </p>
+        <p className="sub">{t('landing.hero.sub')}</p>
       </header>
 
       <AuditForm onSubmit={onStart} autoFocus size="lg" />
 
-      <p className="hero-note">
-        Works on any public channel — including your competitors'.
-      </p>
+      <p className="hero-note">{t('landing.hero.note')}</p>
 
       {/* Sits directly under the search, where someone who has been here
           before is already looking. Renders nothing on a first visit. */}
       <RecentStrip onSelect={(handle) => onStart(handle)} />
 
       <section className="section" id="checks">
-        <h2>Channel audit checklist</h2>
-        <p className="section-lede">
-          Your score reflects your most recent videos. Each category grades a
-          signal that YouTube's recommendation system actually rewards.
-        </p>
+        <h2>{t('landing.checks.heading')}</h2>
+        <p className="section-lede">{t('landing.checks.lede')}</p>
         <div className="check-grid">
           {CHECKS.map((c, i) => (
-            <div key={c.title} className="check-card reveal" style={{ '--i': i }}>
+            <div key={c.key} className="check-card reveal" style={{ '--i': i }}>
               <div className="check-card-head">
                 <span className="icon-tile" aria-hidden="true">
                   {c.icon}
                 </span>
-                <h3>{c.title}</h3>
+                <h3>{t(`landing.checks.${c.key}.title`)}</h3>
               </div>
-              <p>{c.body}</p>
+              <p>{t(`landing.checks.${c.key}.body`)}</p>
             </div>
           ))}
         </div>
@@ -357,10 +326,8 @@ export function Landing({ onStart }) {
           scroll-margin-top on .section is what stops the masthead covering
           the heading on arrival. */}
       <section className="section" id="how">
-        <h2>How it works</h2>
-        <p className="section-lede">
-          Nothing to install, and every point traceable to a named check.
-        </p>
+        <h2>{t('landing.how.heading')}</h2>
+        <p className="section-lede">{t('landing.how.lede')}</p>
 
         {/* Two columns from 900px up: the steps on the left, the scorecard on
             the right. Below 900px they stack in that same source order. Both
@@ -369,51 +336,43 @@ export function Landing({ onStart }) {
             the right started at a rule. */}
         <div className="checks-split">
           <div className="checks-split-steps">
-            <h3 className="scorecard-head">Three steps</h3>
+            <h3 className="scorecard-head">{t('landing.how.stepsHeading')}</h3>
             {/* Each step's content is wrapped in a single element on purpose:
                 the li is a two-column grid, and loose text alongside <b> would
                 become its own anonymous grid item and land in the number
                 column. */}
             <ol className="steps">
-              <li>
-                <div>
-                  <b>Paste a channel.</b> A URL, an @handle, or a raw channel
-                  ID — all three work.
-                </div>
-              </li>
-              <li>
-                <div>
-                  <b>Get the score instantly.</b> The health score, checklist,
-                  and performance chart are computed from public data, with no
-                  model involved and nothing to wait for.
-                </div>
-              </li>
-              <li>
-                <div>
-                  <b>Read the breakdown.</b> One click turns the numbers into
-                  plain English: what's working, which titles to rewrite, and
-                  what to make next.
-                </div>
-              </li>
+              {[1, 2, 3].map((n) => (
+                <li key={n}>
+                  <div>
+                    <b>{t(`landing.how.step${n}.lead`)}</b>{' '}
+                    {t(`landing.how.step${n}.rest`)}
+                  </div>
+                </li>
+              ))}
             </ol>
           </div>
 
           <div className="checks-split-table">
-            <h3 className="scorecard-head">All fourteen checks, and what each is worth</h3>
+            <h3 className="scorecard-head">{t('landing.scorecard.heading')}</h3>
             <div className="scorecard">
               {SCORECARD.map((g) => (
                 <div key={g.group} className="scorecard-group">
                   <div className="scorecard-group-head">
-                    <span>{g.group}</span>
+                    <span>{t(`landing.scorecard.group.${g.group}`)}</span>
                     {/* Summed rather than written down: a group total that
                         disagrees with its own rows is the kind of error nobody
                         notices and everybody spots. */}
                     <b>{g.items.reduce((n, [, pts]) => n + pts, 0)}</b>
                   </div>
-                  {g.items.map(([label, pts, earns]) => (
-                    <div key={label} className="scorecard-row">
-                      <span className="scorecard-label">{label}</span>
-                      <span className="scorecard-earns">{earns}</span>
+                  {g.items.map(([key, pts, vars]) => (
+                    <div key={key} className="scorecard-row">
+                      <span className="scorecard-label">
+                        {t(`landing.scorecard.${key}`)}
+                      </span>
+                      <span className="scorecard-earns">
+                        {t(`landing.scorecard.${key}.earns`, vars)}
+                      </span>
                       {/* Magnitude bar on one scale shared by every row, so a
                           10-point check is visibly twice a 5-point one across
                           group boundaries as well as inside them. Decorative
@@ -428,74 +387,66 @@ export function Landing({ onStart }) {
                 </div>
               ))}
             </div>
-            <p className="scorecard-note">
-              A partial pass earns half. Anything the audit can't observe —
-              hidden like counts, a channel too new to have an upload rhythm —
-              leaves the total rather than scoring zero, so the percentage
-              always means "how much of what could be seen was in order".
-            </p>
+            <p className="scorecard-note">{t('landing.scorecard.note')}</p>
           </div>
         </div>
       </section>
 
       <section className="section" id="faq">
         <FaqSchema />
-        <h2>Questions</h2>
-        <p className="section-lede">
-          What the score means, and what this can't tell you.
-        </p>
+        <h2>{t('landing.faq.heading')}</h2>
+        <p className="section-lede">{t('landing.faq.lede')}</p>
         <div className="faq">
-          {FAQ.map((item) => (
-            <details key={item.q}>
-              <summary>{item.q}</summary>
-              <p>{item.a}</p>
+          {FAQ.map((n) => (
+            <details key={n}>
+              <summary>{t(`landing.faq.q${n}`)}</summary>
+              <p>{t(`landing.faq.a${n}`)}</p>
             </details>
           ))}
         </div>
       </section>
 
       <section className="section" id="guides">
-        <h2>Read more</h2>
-        <p className="section-lede">
-          Longer answers on how the score is built and what to do with it.
-        </p>
+        <h2>{t('landing.guides.heading')}</h2>
+        <p className="section-lede">{t('landing.guides.lede')}</p>
         {/* Real anchors, not router calls: these are separate documents served
-            by the host, so a click has to leave the app. */}
+            by the host, so a click has to leave the app.
+            The guide pages are English-only, and the labels stay English with
+            an explicit note rather than being translated: a translated link
+            title that opens an English document is a worse experience than an
+            English link that says so up front. */}
         <ul className="guide-links">
           {GUIDES.map(([slug, label]) => (
             <li key={slug}>
-              <a href={`/${slug}`}>{label}</a>
+              <a href={`/${slug}`} hrefLang="en" lang="en">
+                {label}
+              </a>{' '}
+              <span className="guide-lang">{t('landing.guides.englishOnly')}</span>
             </li>
           ))}
         </ul>
       </section>
 
       <section className="cta-band">
-        <h2>Turn the score into a plan</h2>
-        <p>
-          The audit tells you what's wrong in a few seconds. A free account
-          tells you what to do about it.
-        </p>
+        <h2>{t('landing.cta.heading')}</h2>
+        <p>{t('landing.cta.sub')}</p>
         {/* Every line here is a feature the signed-out build actually gates —
             see Locked.jsx and FREE_VIDEOS. Promising anything else would be
             found out on the first audit, which is the one thing a tool selling
             diagnosis cannot afford. */}
         <ul className="cta-list">
-          <li>All fourteen checks, each with the reasoning and the fix</li>
-          <li>Scans of up to 100 videos instead of {FREE_VIDEOS}</li>
-          <li>A written breakdown: what's working, what to fix, what to make next</li>
-          <li>A rewritten About section, drafted for you</li>
-          <li>Saved audits, so you can re-run a channel and see what moved</li>
+          <li>{t('landing.cta.item1')}</li>
+          <li>{t('landing.cta.item2', { n: FREE_VIDEOS })}</li>
+          <li>{t('landing.cta.item3')}</li>
+          <li>{t('landing.cta.item4')}</li>
+          <li>{t('landing.cta.item5')}</li>
         </ul>
-        <p className="cta-fine">
-          No card, no extension, no YouTube login — and it still works on any
-          public channel, including your competitors'.
-        </p>
+        <p className="cta-fine">{t('landing.cta.fine')}</p>
         <button type="button" onClick={scrollToSearch}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
             <path d="M12 4.7 5.4 11.3l.9.9 5.1-5v12.1h1.2V7.2l5.1 5 .9-.9L12 4.7Z" />
           </svg>
-          Back to search
+          {t('landing.cta.back')}
         </button>
       </section>
     </>

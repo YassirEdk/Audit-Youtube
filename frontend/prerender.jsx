@@ -14,6 +14,8 @@
 
 import { renderToString } from 'react-dom/server'
 import { Landing } from './src/Landing.jsx'
+import { I18nProvider } from './src/i18n/index.jsx'
+import { DEFAULT_LOCALE } from './src/i18n/locales.js'
 import { AuthContext } from './src/useAuth.js'
 
 // Landing reads auth state through useAuth, which throws without a provider.
@@ -31,10 +33,20 @@ const anonymous = {
   signOut: async () => ({}),
 }
 
-export function render() {
+/**
+ * Renders the landing page for one locale.
+ *
+ * Defaults to English because that is what dist/index.html holds — the
+ * unprefixed /Home. The parameter is what lets prerender.mjs emit a static
+ * document per language: a crawler arriving at /fr/Home has to find French in
+ * the HTML, not an English page that turns French once React boots.
+ */
+export function render(locale = DEFAULT_LOCALE) {
   return renderToString(
-    <AuthContext.Provider value={anonymous}>
-      <Landing onStart={() => {}} />
-    </AuthContext.Provider>,
+    <I18nProvider locale={locale}>
+      <AuthContext.Provider value={anonymous}>
+        <Landing onStart={() => {}} />
+      </AuthContext.Provider>
+    </I18nProvider>,
   )
 }

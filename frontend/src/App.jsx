@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar.jsx'
 import { SearchIcon, Shell } from './Shell.jsx'
 import { readDepth, writeDepth } from './depth.js'
 import { FREE_VIDEOS } from './limits.js'
+import { I18nProvider, useT } from './i18n/index.jsx'
 import { useLocked } from './useAuth.js'
 import { useRoute } from './useRoute.js'
 import { useScrollSpy } from './useScrollSpy.js'
@@ -20,8 +21,28 @@ import './App.css'
 // it's the tallest section on the page, so the opposite is true.
 const SECTIONS = ['checks', 'how', 'faq', 'guides']
 
+/**
+ * Reads the locale off the route and puts the translation context around
+ * everything below it.
+ *
+ * The split exists because of an ordering problem: the locale comes from the
+ * URL, which only useRoute knows how to read, but every component under here
+ * needs the catalogue that choice selects. So the outer component routes and
+ * the inner one renders — the provider can't wrap a hook that hasn't run yet.
+ */
 function App() {
-  const { channel, navigate } = useRoute()
+  const route = useRoute()
+
+  return (
+    <I18nProvider locale={route.locale}>
+      <AppView route={route} />
+    </I18nProvider>
+  )
+}
+
+function AppView({ route }) {
+  const { channel, locale, navigate, changeLocale } = route
+  const t = useT()
   const locked = useLocked()
   const [depth, setDepth] = useState(readDepth)
   // The server clamps this too, and that's the boundary that counts. Clamping
@@ -51,9 +72,11 @@ function App() {
 
   const serverDown = health?.offline
 
+  // Retitled on a language change as well as a navigation: the tab is the one
+  // piece of the page that stays visible after you switch away from it.
   useEffect(() => {
-    if (!channel) document.title = 'YouTube Channel Audit — score any channel'
-  }, [channel])
+    if (!channel) document.title = t('app.title')
+  }, [channel, t])
 
   // Nav sections live on the landing page only. From a results page the link
   // has to go home first, then scroll — and the scroll can't happen until the
@@ -84,6 +107,8 @@ function App() {
     <Shell
       active={channel ? undefined : activeSection}
       onNavigate={handleNavigate}
+      locale={locale}
+      onLocaleChange={changeLocale}
       // Only on results pages — on the landing page the section nav is still
       // the right thing, and a rail of past audits would crowd the pitch.
       sidebar={
@@ -107,18 +132,22 @@ function App() {
       <div className="app">
         {serverDown && (
           <div className="banner error">
-            <strong>Server not running.</strong> Start it by double-clicking{' '}
-            <code>start-server.bat</code>, then reload this page.
+            <strong>{t('app.serverDown.lead')}</strong>{' '}
+            {/* The filename is interpolated rather than written into the
+                sentence, so a translator never has to retype it — a typo in
+                start-server.bat is an instruction that silently doesn't work. */}
+            {t('app.serverDown.rest', { file: 'start-server.bat' })}
           </div>
         )}
 
         {channel ? (
           <Results
             // Remounts on channel change so no state leaks between audits.
-            key={`${channel}:${videos}`}
+            key={`${channel}:${videos}:${locale}`}
             channel={channel}
             videos={videos}
             health={health}
+            locale={locale}
             onNewAudit={() => navigate(null)}
           />
         ) : (
@@ -126,11 +155,7 @@ function App() {
         )}
 
         <footer>
-          <p>
-            Performance is scored against each channel's own median views, so
-            one viral video doesn't make everything else look like a failure.
-            Public data only — no retention, CTR, or traffic sources.
-          </p>
+          <p>{t('app.footer')}</p>
         </footer>
       </div>
     </Shell>
@@ -138,6 +163,7 @@ function App() {
 }
 
 function CompactSearch({ initial, onSubmit }) {
+  const t = useT()
   const [value, setValue] = useState(initial)
 
   return (
@@ -152,10 +178,10 @@ function CompactSearch({ initial, onSubmit }) {
         value={value}
         onChange={setValue}
         onPick={(handle) => onSubmit(handle)}
-        placeholder="Audit another channel"
-        ariaLabel="Channel to audit"
+        placeholder={t('app.search.another')}
+        ariaLabel={t('app.search.ariaChannel')}
       />
-      <button type="submit" aria-label="Audit channel">
+      <button type="submit" aria-label={t('app.search.ariaSubmit')}>
         <SearchIcon />
       </button>
     </form>

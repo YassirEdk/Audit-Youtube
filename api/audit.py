@@ -373,7 +373,26 @@ def summarize(channel: dict, videos: list[dict]) -> dict:
     }
 
 
-def build_prompt(channel: dict, videos: list[dict], health: dict | None = None) -> str:
+# What to tell the model when the reader is not reading English.
+#
+# The instruction is placed last in the prompt, after the section headings, and
+# names the headings explicitly. Both details matter: a language instruction
+# buried at the top gets outweighed by 400 words of English scaffolding, and a
+# model that translates the prose but leaves "## The verdict" in English
+# produces a report that looks broken rather than bilingual.
+#
+# Keyed by the frontend's locale codes (frontend/src/i18n/locales.js).
+_REPORT_LANGUAGE = {
+    "fr": "French",
+    "es": "Latin American Spanish",
+    "pt": "Brazilian Portuguese",
+    "ar": "Modern Standard Arabic",
+}
+
+
+def build_prompt(
+    channel: dict, videos: list[dict], health: dict | None = None, lang: str = "en"
+) -> str:
     stats = channel["statistics"]
     ranked = sorted(videos, key=lambda v: v["multiple"], reverse=True)
 
@@ -394,6 +413,18 @@ def build_prompt(channel: dict, videos: list[dict], health: dict | None = None) 
             f"{v['likes']:,} likes | {v['comments']:,} comments | "
             f"{v['days_old']}d old | {v['title']}{flag}"
         )
+
+    # Empty for English, so the prompt is byte-identical to what it was before
+    # this existed — the default path gains no tokens and no new behaviour.
+    language = _REPORT_LANGUAGE.get(lang)
+    language_rule = (
+        f"\n- Write the entire report in {language}, including the section "
+        "headings. Keep the heading order and the markdown structure exactly as "
+        "specified above. Channel names, video titles and numbers stay as they "
+        "are — do not translate a video's title, quote it verbatim."
+        if language
+        else ""
+    )
 
     return f"""Audit this YouTube channel and write a report for its owner.
 
@@ -438,7 +469,7 @@ Rules:
 - You cannot see thumbnails, retention, CTR, or traffic. Never guess at them.
 - Videos flagged "still recent" have incomplete views — never call them failures.
 - The failed checks are already on screen as a checklist. Don't list them back.
-  Reference one only where it explains a content problem you're diagnosing."""
+  Reference one only where it explains a content problem you're diagnosing.{language_rule}"""
 
 
 def build_about_prompt(channel: dict, videos: list[dict]) -> str:

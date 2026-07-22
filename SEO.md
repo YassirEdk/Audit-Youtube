@@ -18,6 +18,41 @@ What the build already does, and the three things it can't do for you.
 - `dist/sitemap.xml` (generated from that same list, so it can't list a 404 or
   omit a page) and `dist/robots.txt`
 
+## Languages
+
+The app ships in English, French, Spanish (es-419), Portuguese (pt-BR) and
+Arabic. English is the bare `/Home`; every other language is a path prefix,
+`/fr/Home` and so on. English was never moved, because it was indexed at
+`/Home` and at the eight guide slugs before any of this existed.
+
+Each locale gets a **prerendered** document at `dist/<code>/Home/index.html`
+with its own `<html lang>`, `dir`, and canonical. That file has to exist: the
+catch-all rewrite in `vercel.json` would otherwise serve the English
+`index.html` at `/fr/Home`, a crawler would read English markup there, and
+Google would drop the page from the hreflang cluster as a duplicate.
+
+`hreflang` is emitted on all five, listing all five plus `x-default` → English.
+Three rules make or break it, and the build satisfies all three by
+construction: the set is identical on every page, every URL is absolute, and
+each page lists itself.
+
+**Nothing auto-redirects on `Accept-Language`.** This is deliberate and it is
+the most common way a multilingual site quietly fails: Googlebot crawls from
+the US with an English header, so a site that redirects on it serves English at
+every URL and the translated pages are never indexed. The URL decides the
+language; the switcher in the masthead is how a visitor changes it.
+
+The eight guide pages are **English only**. They are ~5,200 words of copy whose
+slugs are the keywords, and a translated slug is a keyword-research decision
+rather than a translation — `/free-youtube-channel-audit-tool` ranks because it
+is the phrase people type. The landing page links them with an explicit "in
+English" note rather than pretending otherwise, and the sitemap lists each once.
+
+UI strings live in `frontend/src/i18n/catalogues/`. `npm run check:i18n` (also
+the first step of `npm run build`) fails on a missing key, an extra key, or a
+`{placeholder}` that differs from English — every one of which is otherwise
+invisible to whoever speaks the language least.
+
 ## Keywords
 
 There is no `<meta name="keywords">` tag and there should never be one. Google

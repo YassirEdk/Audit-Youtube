@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/prerender.mjs",
+    "build": "node scripts/check-i18n.mjs && vite build && node scripts/prerender.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "lint": "oxlint",
     "og": "node scripts/og-image.mjs",
     "preview": "vite preview"
