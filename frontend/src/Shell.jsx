@@ -22,10 +22,29 @@ const NAV = [
   },
   {
     id: 'checks',
-    label: 'What we check',
+    label: 'Checklist',
+    // Ticked rows rather than the single large tick this used to be: a bare
+    // tick reads as "done", which is what a results page means, not "here is
+    // the list of things measured".
+    //
+    // Two rows, not three, and the tick is drawn at this size rather than the
+    // page's big tick scaled down. .yt-nav-icon renders into a 20px box, so a
+    // 24-unit path is displayed at 0.83×: anything thinner than ~1.2 units
+    // here lands under a physical pixel and greys out. The strokes below are
+    // 2 units, which survives it.
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M9.6 16.2 4.8 11.4l1.4-1.4 3.4 3.4L17.8 5l1.4 1.4-9.6 9.8Z" />
+        <path d="M22 7h-9v2h9V7Zm0 8h-9v2h9v-2ZM5.54 11 2 7.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 11Zm0 8L2 15.46l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41L5.54 19Z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'how',
+    label: 'How it works',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 1.2a7.8 7.8 0 1 1 0 15.6 7.8 7.8 0 0 1 0-15.6Z" />
+        <path d="M10 8.2 16 12l-6 3.8V8.2Z" />
       </svg>
     ),
   },
@@ -35,6 +54,15 @@ const NAV = [
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M11.3 15h1.4v1.4h-1.4V15Zm.7-8c-1.7 0-3 1.3-3 3h1.4c0-.9.7-1.6 1.6-1.6s1.6.7 1.6 1.6c0 .6-.3.9-.9 1.4-.8.6-1.4 1.1-1.4 2.4h1.4c0-.7.3-1 .9-1.5.8-.6 1.4-1.2 1.4-2.3 0-1.7-1.3-3-3-3Zm0-4a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 1.2a7.8 7.8 0 1 1 0 15.6 7.8 7.8 0 0 1 0-15.6Z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'guides',
+    label: 'Read more',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 6.3A9.4 9.4 0 0 0 6.5 4.6c-1.2 0-2.4.2-3.5.6v12.4c1.1-.4 2.3-.6 3.5-.6 2 0 4 .6 5.5 1.7 1.5-1.1 3.5-1.7 5.5-1.7 1.2 0 2.4.2 3.5.6V5.2c-1.1-.4-2.3-.6-3.5-.6-2 0-4 .6-5.5 1.7Zm-.6 10.9a10.6 10.6 0 0 0-4.9-1.2c-.8 0-1.5.1-2.3.3V6.1c.7-.2 1.5-.3 2.3-.3 1.7 0 3.4.4 4.9 1.2v10.2Zm1.2 0V7c1.5-.8 3.2-1.2 4.9-1.2.8 0 1.6.1 2.3.3v10.2c-.8-.2-1.5-.3-2.3-.3-1.7 0-3.4.4-4.9 1.2Z" />
       </svg>
     ),
   },

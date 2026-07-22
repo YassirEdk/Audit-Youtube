@@ -12,7 +12,82 @@ What the build already does, and the three things it can't do for you.
   `SITE_URL` (defaults to `https://audit-youtube.vercel.app`)
 - `WebApplication` structured data in the head; `FAQPage` structured data comes
   from `Landing.jsx`, generated from the FAQ the page actually renders
-- `dist/sitemap.xml` and `dist/robots.txt`
+- one static document per entry in `frontend/scripts/pages.mjs`, written as
+  `dist/<slug>/index.html` — plain HTML, no React, each with its own title,
+  canonical, OG tags and `Article`/`BreadcrumbList`/`FAQPage` schema
+- `dist/sitemap.xml` (generated from that same list, so it can't list a 404 or
+  omit a page) and `dist/robots.txt`
+
+## Keywords
+
+There is no `<meta name="keywords">` tag and there should never be one. Google
+has ignored it since 2009 and has said so publicly; Bing treats it as a spam
+signal. Its only remaining effect is to publish your target keyword list to any
+competitor who opens view-source.
+
+Keywords live in the copy instead. One page owns one query:
+
+| URL | Primary query |
+| --- | --- |
+| `/Home` | youtube channel audit |
+| `/free-youtube-channel-audit-tool` | free youtube channel audit tool |
+| `/how-the-youtube-channel-score-works` | youtube channel health score |
+| `/youtube-competitor-channel-analysis` | youtube competitor analysis |
+| `/youtube-audit-for-small-channels` | youtube audit for small channels |
+| `/youtube-channel-audit-vs-vidiq-tubebuddy` | vidiq / tubebuddy alternative |
+| `/youtube-channel-audit-checklist` | youtube channel audit checklist |
+| `/why-are-my-youtube-views-dropping` | why are my youtube views dropping |
+| `/how-often-should-i-upload-to-youtube` | how often should i upload to youtube |
+
+Two pages competing for one query is the failure mode to avoid — Google picks
+one and it is rarely the one you wanted. That is the same rule as the "don't
+reuse the FAQ answers" note below, applied to titles instead of paragraphs.
+
+Exact-phrase matching is *not* required: "how to analyse a competitor's YouTube
+channel" ranks for "youtube competitor analysis" without containing it. What
+does matter is that the H1 names the subject, which is why every guide H1 says
+"YouTube" even where it made the sentence slightly less elegant. Someone
+arriving from a result page needs one glance to confirm they are in the right
+place.
+
+The landing H1 is the deliberate exception. "Find out what's holding your
+channel back" carries no keyword and stays that way: the title tag already
+holds the phrase, and the hero's job is to convert a visitor who has already
+arrived.
+
+## What the sitemap does and doesn't do
+
+It is a discovery mechanism, not a ranking one. Listing a URL asks a crawler to
+look; nothing in the file argues that it should rank.
+
+Two fields you will see in every sitemap tutorial are absent on purpose.
+Google's documentation states it ignores `<priority>` and `<changefreq>`
+outright, and Bing ignores priority too. They were in this file until they
+were removed — not tuned — because a priority of 1.0 made it look like the
+build was expressing something a crawler would read.
+
+`<lastmod>` is the field that is actually consumed, and only while it stays
+honest: a sitemap whose dates move on every deploy gets its lastmod discarded
+site-wide. So the dates are hand-written — `updated` per entry in `pages.mjs`,
+`HOME_UPDATED` in `prerender.mjs` — rather than taken from the clock or from
+git, which returns the deploy commit's date for every file on Vercel's shallow
+clone. Move a date when you rewrite a page; leave it for a typo fix. A
+malformed date fails the build.
+
+## Adding a content page
+
+Append to `PAGES` in `frontend/scripts/pages.mjs` (including `updated`), then
+add the slug to `GUIDES` in `frontend/src/Landing.jsx`. The build fails if you
+skip the second step: a page nothing links to gets crawled once and treated as
+filler, and that failure is otherwise invisible for weeks.
+
+Two rules the build can't check for you:
+
+- **Don't reuse the FAQ answers from `Landing.jsx`.** Two URLs carrying the
+  same paragraph compete, Google keeps one, and it is usually not the one you
+  wanted. The FAQ is the summary; a content page is the long answer.
+- **Never change a slug after it is indexed.** Whatever the old URL earned is
+  thrown away. Pick the search phrase, then leave it alone.
 
 The social card at `frontend/public/og.png` is committed, not built. Edit
 `frontend/scripts/og-image.html` and run `npm run og` to regenerate it.
@@ -23,7 +98,13 @@ The social card at `frontend/public/og.png` is committed, not built. Edit
    <https://search.google.com/search-console>, verify it (the HTML-tag method
    works: paste the meta tag into `frontend/index.html`, deploy, verify), then
    submit `sitemap.xml` under Sitemaps. Use *URL Inspection → Request indexing*
-   on `/Home` once to skip the initial wait.
+   on `/Home` and on each content page once to skip the initial wait.
+
+   Ownership is currently proved by `public/google0dc7bb17817a1e0d.html`
+   instead. That file must keep resolving at exactly that URL — it is why the
+   content pages are directory indexes rather than `<slug>.html` with Vercel's
+   `cleanUrls`, which would have redirected it and silently un-verified the
+   property.
 2. **Bing Webmaster Tools.** Same job, five minutes, and it imports directly
    from Search Console. Bing is also where ChatGPT search gets its results.
 3. **A custom domain.** See below.

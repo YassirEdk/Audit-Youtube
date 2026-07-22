@@ -1090,6 +1090,330 @@ html {
   color: var(--text-2);
 }
 
+/* ---------- closing CTA value list ---------- */
+
+/* Ticks rather than bullets, and left-aligned inside a centred band: a
+   centred list has a ragged left edge, which is exactly the edge the eye
+   uses to scan down five items. */
+.cta-list {
+  display: inline-block;
+  margin: var(--gap) 0 1.25rem;
+  padding: 0;
+  text-align: left;
+  list-style: none;
+}
+
+.cta-list li {
+  position: relative;
+  padding: 5px 0 5px 28px;
+  font-size: 0.95rem;
+}
+
+.cta-list li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 11px;
+  width: 10px;
+  height: 5px;
+  border-left: 2px solid var(--ok);
+  border-bottom: 2px solid var(--ok);
+  transform: rotate(-45deg);
+}
+
+/* Scoped to the band so it outweighs `.cta-band p`, which would otherwise win
+   on specificity and drop the auto margins that centre this box. */
+.cta-band .cta-fine {
+  max-width: 46ch;
+  margin: 0 auto 1.25rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-3);
+}
+
+/* ---------- checklist / how-it-works split ---------- */
+
+/* Same two-column geometry as .check-grid above it — equal tracks, the same
+   --gap gutter — so the columns in this block line up with the card edges
+   directly above rather than sitting on their own private grid. */
+.checks-split {
+  display: grid;
+  gap: var(--gap);
+  align-items: start;
+  margin-top: 2rem;
+}
+
+/* Establishes the query container the scorecard sizes itself against — the
+   column, not the window. Also `minmax(0, …)` on both tracks below: without
+   the 0 floor a grid item's min-content width wins, and the widest scorecard
+   row would push the steps off the grid rather than wrapping. */
+.checks-split-table {
+  container-type: inline-size;
+}
+
+/* The steps column is a query container too, now that 30% of the content
+   width is about 290px. The step cards were drawn for a full-width row: at
+   this size their 32px counter and 16px padding eat a third of the line, and
+   step 2 wraps to eight lines. */
+.checks-split-steps {
+  container-type: inline-size;
+}
+
+@container (max-width: 340px) {
+  .steps li {
+    grid-template-columns: 24px 1fr;
+    gap: 10px;
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+
+  .steps li::before {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Both columns are headed by .scorecard-head, so the treatment is shared and
+   the two baselines sit on the same line. Its margin is already 0 at the top —
+   the section's lede supplies the space above. */
+
+@media (min-width: 900px) {
+  /* 30/70 in favour of the table. At the content width this puts the
+     scorecard over its 620px container breakpoint, which brings the magnitude
+     bar column back — the split is what decides whether that encoding exists
+     at all, so it is doing more here than dividing space. */
+  .checks-split {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  }
+
+  /* Sticky belongs on the steps, not the table. The grid row is as tall as
+     its tallest child and that is the scorecard — a sticky element that
+     *defines* the container height has no room to travel inside it and does
+     nothing. The short column is the one that can follow you down. */
+  .checks-split-steps {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+  }
+}
+
+/* ---------- scorecard ---------- */
+
+/* The column headings.
+ *
+ * Previously a label followed by a hairline filling the leftover width, which
+ * had two problems: the rule stopped at a different place in each column
+ * because the labels are different lengths, and a horizontal line running off
+ * to the right reads as a divider between things rather than a heading for
+ * what is under it.
+ *
+ * Now the rule is a full-width baseline both columns share, with a short
+ * accent segment marking where the text starts. The heading sits on the thing
+ * it names instead of pointing away from it. */
+.scorecard-head {
+  position: relative;
+  margin: 0 0 var(--gap);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.scorecard-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  /* -1px so the accent sits on the border rather than above it — at 2px tall
+     against a 1px rule, a gap of even a pixel reads as a mistake. */
+  bottom: -1px;
+  width: 28px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--blue);
+}
+
+.scorecard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* The group bands were the same grey as the card, so the whole thing read as
+   one undifferentiated stack. Rows sit on the lighter surface and the band
+   keeps the base colour, which separates them without another border. */
+.scorecard-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 9px 16px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.scorecard-group + .scorecard-group .scorecard-group-head {
+  border-top: 1px solid var(--border);
+}
+
+/* The group total as a pill: it's a different kind of number from the per-row
+   points — a sum, not a weight — and sharing their styling made the eye add
+   it into the column. */
+.scorecard-group-head b {
+  flex: none;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.scorecard-group-head b::after {
+  content: " pts";
+  color: var(--text-3);
+}
+
+/* Four columns: label, what earns it, the magnitude bar, the number. The bar
+   is a fixed track rather than a fraction so every row's zero starts at the
+   same x — a bar chart whose baselines don't line up isn't one. */
+.scorecard-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr 64px 1.75rem;
+  gap: var(--gap);
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--bg);
+  font-size: 0.9rem;
+  transition: background var(--fast) var(--ease);
+}
+
+.scorecard-row + .scorecard-row {
+  border-top: 1px solid var(--border);
+}
+
+.scorecard-row:hover {
+  background: var(--surface-2);
+}
+
+.scorecard-earns {
+  color: var(--text-2);
+}
+
+/* 4px track, fully rounded, one hue. Magnitude is the only thing encoded, so
+   there is one colour and no legend — the number to its right is the label. */
+.scorecard-bar {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.scorecard-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--blue);
+}
+
+/* Tabular figures so the column is a column: without them the 7s and 1s set
+   at different widths and the right edge frays. */
+.scorecard-pts {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text);
+}
+
+/* The note was floating loose under the card. The rule ties it to what it
+   annotates and marks it as a caveat rather than more body copy. */
+.scorecard-note {
+  margin: 1rem 0 0;
+  padding-left: var(--gap);
+  border-left: 2px solid var(--border);
+  max-width: 80ch;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* Container queries, not viewport ones. The scorecard now lives in a column
+   that is roughly 60% of the content width on desktop and 100% on a phone, so
+   "how wide is the window" stopped predicting "how wide is this table". These
+   ask the only question that matters — how much room the card actually has —
+   and keep working wherever it gets placed next.
+   `container-type: inline-size` is set on .checks-split-main. */
+@container (max-width: 620px) {
+  .scorecard-row {
+    grid-template-columns: minmax(8rem, auto) 1fr 1.75rem;
+  }
+
+  /* The bar is the first thing to go: it's a redundant encoding of the number
+     beside it, so losing it costs nothing that isn't still on screen. */
+  .scorecard-bar {
+    display: none;
+  }
+}
+
+@container (max-width: 440px) {
+  .scorecard-row {
+    grid-template-columns: 1fr 1.75rem;
+    row-gap: 3px;
+    align-items: baseline;
+  }
+
+  .scorecard-earns {
+    grid-column: 1;
+    font-size: 0.85rem;
+  }
+
+  .scorecard-pts {
+    grid-row: 1;
+    grid-column: 2;
+  }
+}
+
+/* ---------- guide links ---------- */
+
+/* Styled as rows rather than a bullet list: they sit directly under the FAQ
+   accordion, and matching its dividers keeps the two blocks reading as one
+   column instead of a list bolted onto the end. */
+.guide-links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-links li {
+  border-top: 1px solid var(--border);
+}
+
+.guide-links a {
+  display: block;
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background var(--fast) var(--ease);
+}
+
+.guide-links a:hover {
+  background: var(--surface-2);
+}
+
+.guide-links a::after {
+  content: "→";
+  float: right;
+  color: var(--text-3);
+}
+
 /* ---------- closing CTA ---------- */
 
 .cta-band {

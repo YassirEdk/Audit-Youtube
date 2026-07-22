@@ -70,7 +70,7 @@ def _setup_checks(channel: dict) -> list[dict]:
             PASS if banner else FAIL,
             "Set" if banner else "No banner uploaded",
             "Add a 2560×1440 banner — it's the first thing a new visitor sees.",
-            6,
+            5,
         ),
         _check(
             "about",
@@ -81,7 +81,7 @@ def _setup_checks(channel: dict) -> list[dict]:
             else "Empty",
             "Write 200+ characters covering what the channel is about and who "
             "it's for. This text is searchable.",
-            8,
+            7,
         ),
         _check(
             "keywords",
@@ -92,7 +92,7 @@ def _setup_checks(channel: dict) -> list[dict]:
             "Set" if keywords else "None set",
             "Add channel keywords in YouTube Studio → Settings → Channel → "
             "Basic info.",
-            5,
+            4,
         ),
         _check(
             "handle",
@@ -123,7 +123,7 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             f"{_pct(tagged)}% of {n} videos have 3+ tags",
             f"{n - round(tagged * n)} videos need tags. Tags matter most for "
             "disambiguating topics YouTube might otherwise misread.",
-            12,
+            10,
         ),
         _check(
             "descriptions",
@@ -132,7 +132,7 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             f"{_pct(described)}% are 250+ characters",
             "Short descriptions give YouTube nothing to index. Aim for 250+ "
             "characters with the topic stated in the first two lines.",
-            12,
+            10,
         ),
         _check(
             "titles",
@@ -141,7 +141,7 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             f"{_pct(titled)}% fall in the 30–70 character range",
             "Titles under 30 characters waste search real estate; over 70 get "
             "truncated before the hook lands.",
-            8,
+            7,
         ),
         _check(
             "captions",
@@ -150,7 +150,7 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
             f"{_pct(captioned)}% have captions",
             "Captioned videos are indexable and watchable muted. Auto-captions "
             "count, but only if you don't disable them.",
-            6,
+            5,
         ),
         _check(
             "hd",
@@ -163,7 +163,7 @@ def _metadata_checks(videos: list[dict]) -> list[dict]:
     ]
 
 
-def _habit_checks(videos: list[dict], share_above: float) -> list[dict]:
+def _habit_checks(videos: list[dict], share_above: float, channel: dict) -> list[dict]:
     # Cadence: median gap between consecutive uploads. Median rather than mean
     # so one hiatus doesn't characterise an otherwise regular channel.
     dates = sorted((v["published"] for v in videos), reverse=True)
@@ -172,12 +172,40 @@ def _habit_checks(videos: list[dict], share_above: float) -> list[dict]:
     # a float, which reads as "every 3.5 days" — spurious precision for a gap.
     gap = int(median(gaps)) if gaps else 0
 
+    # Days since the newest upload. Deliberately separate from cadence, which
+    # measures spacing and nothing else: a channel that published like
+    # clockwork for two years and then stopped eight months ago still scores a
+    # perfect cadence, because every gap it ever had was small. Recency is the
+    # check that notices it went quiet.
+    since = min((v["days_old"] for v in videos), default=None)
+
     # Likes are 0 when the creator hides the count — indistinguishable from
     # genuinely zero likes, so treat an all-zero channel as unobservable
     # rather than scoring it as terrible engagement.
-    rates = [v["likes"] / v["views"] for v in videos if v["views"] > 0]
-    visible = any(v["likes"] for v in videos)
+    #
+    # Comments count toward the ratio as well as likes. A comment is a much
+    # higher-effort signal than a like, and a channel with the comments turned
+    # off is measured on likes alone rather than marked down for it — which is
+    # why the thresholds below sit only slightly above the likes-only ones
+    # they replaced (4%) instead of being scaled up for the added term.
+    rates = [
+        (v["likes"] + v["comments"]) / v["views"] for v in videos if v["views"] > 0
+    ]
+    visible = any(v["likes"] or v["comments"] for v in videos)
     engagement = median(rates) if rates else 0.0
+
+    # Views per subscriber, on the median video. The question it answers is
+    # whether uploads travel past the people already subscribed — a channel
+    # whose median video reaches a fifth of its subscriber count is being
+    # recommended outward; one at 2% is talking to its own mailing list.
+    #
+    # The API omits subscriberCount entirely when the creator hides it, and
+    # reports 0 for a genuinely new channel. Both are unscoreable, so both skip
+    # rather than divide by zero.
+    stats = channel.get("statistics", {})
+    subs = int(stats.get("subscriberCount") or 0)
+    typical_views = median([v["views"] for v in videos]) if videos else 0
+    reach = typical_views / subs if subs else 0.0
 
     checks = [
         _check(
@@ -193,7 +221,21 @@ def _habit_checks(videos: list[dict], share_above: float) -> list[dict]:
             else "Not enough upload history to judge",
             "Gaps beyond two weeks cost you the algorithmic momentum that "
             "makes each upload easier than the last.",
-            12,
+            10,
+        ),
+        _check(
+            "recency",
+            "Posting recency",
+            # Negated so that fewer days is better, same trick as cadence.
+            _band(-since, -21, -60) if since is not None else SKIP,
+            "Published today"
+            if since == 0
+            else f"Last upload {since} day{'s' if since != 1 else ''} ago"
+            if since is not None
+            else "No uploads found",
+            "Three weeks of silence and the recommendation system stops "
+            "treating the channel as active. Publishing anything restarts it.",
+            8,
         ),
         _check(
             "hit_rate",
@@ -202,7 +244,18 @@ def _habit_checks(videos: list[dict], share_above: float) -> list[dict]:
             f"{_pct(share_above)}% of videos beat this channel's own median",
             "Most uploads land below your own average, which usually means the "
             "catalogue is carried by a few outliers. Study what they share.",
-            12,
+            10,
+        ),
+        _check(
+            "reach",
+            "Views per subscriber",
+            _band(reach, 0.15, 0.05) if subs else SKIP,
+            f"The median video reaches {_pct(reach)}% of the subscriber count"
+            if subs
+            else "Subscriber count is hidden on this channel",
+            "Videos are mostly reaching people who already subscribed. Titles "
+            "and thumbnails that assume no prior knowledge travel further.",
+            8,
         ),
     ]
 
@@ -211,13 +264,14 @@ def _habit_checks(videos: list[dict], share_above: float) -> list[dict]:
             _check(
                 "engagement",
                 "Engagement",
-                _band(engagement, 0.04, 0.02),
-                f"{engagement * 100:.1f}% like-to-view ratio, typically",
-                # Wording has to cover the warn band (2–4%) as well as failure,
-                # or a 2.9% channel reads advice about being "under 2%".
-                "Healthy channels sit above 4%. Below that, the content is "
-                "being found but not connecting — ask for the like on camera.",
-                11,
+                _band(engagement, 0.045, 0.022),
+                f"{engagement * 100:.1f}% likes and comments per view, typically",
+                # Wording has to cover the warn band as well as failure, or a
+                # 3% channel reads advice about being "under 2%".
+                "Healthy channels sit above 4.5%. Below that, the content is "
+                "being found but not connecting — ask for the like on camera "
+                "and end on a question worth answering.",
+                8,
             )
         )
     else:
@@ -226,9 +280,9 @@ def _habit_checks(videos: list[dict], share_above: float) -> list[dict]:
                 "engagement",
                 "Engagement",
                 SKIP,
-                "Like counts are hidden on this channel",
+                "Likes and comments are hidden on this channel",
                 "",
-                11,
+                8,
             )
         )
 
@@ -240,7 +294,7 @@ def grade_channel(channel: dict, videos: list[dict], share_above: float) -> dict
     checks = (
         _setup_checks(channel)
         + _metadata_checks(videos)
-        + _habit_checks(videos, share_above)
+        + _habit_checks(videos, share_above, channel)
     )
 
     graded = [c for c in checks if c["status"] != SKIP]

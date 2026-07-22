@@ -1,7 +1,7 @@
 /**
  * The report-page rail, in YouTube's subscriptions idiom.
  *
- * On a results page the landing sections ("What we check", "FAQ") are dead
+ * On a results page the landing sections ("Checklist", "FAQ") are dead
  * weight — you're past the pitch. What's actually useful there is getting back
  * to the channels you've already looked at, which is the same job YouTube's
  * subscription list does, so it borrows the same shape: avatar, name, one row

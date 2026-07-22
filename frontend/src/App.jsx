@@ -11,10 +11,14 @@ import { useRoute } from './useRoute.js'
 import { useScrollSpy } from './useScrollSpy.js'
 import './App.css'
 
-// Only the sections the header links to. "how" is deliberately absent: it's
-// still on the page, but tracking it would light nothing while you scroll
-// through it, leaving the nav briefly blank.
-const SECTIONS = ['checks', 'faq']
+// The sections the header links to, in page order — useScrollSpy takes the
+// last one whose top has passed the line, so a list out of document order
+// would light the wrong item.
+//
+// "how" used to be excluded because nothing in the nav pointed at it, which
+// made tracking it a way to leave the nav blank. It has a nav item now, and
+// it's the tallest section on the page, so the opposite is true.
+const SECTIONS = ['checks', 'how', 'faq', 'guides']
 
 function App() {
   const { channel, navigate } = useRoute()
