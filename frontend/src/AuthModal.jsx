@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from './useAuth.js'
+import { useT } from './i18n/index.jsx'
 
 /**
  * The log in / sign up dialog.
@@ -29,8 +30,57 @@ function GoogleMark() {
   )
 }
 
+/**
+ * Supabase's error strings, mapped to sentences a creator can act on.
+ *
+ * What arrives from the API is written for whoever is integrating it: "email
+ * rate limit exceeded" names an internal quota, tells the reader nothing they
+ * can do, and reads like the site is broken. It is also always English, which
+ * on a translated page is the one line that stops being translated.
+ *
+ * Matched on a substring rather than a code because Supabase does not expose a
+ * stable one for these — `error.code` is undefined for most auth failures, so
+ * the message is the only thing to match on. That makes this list fragile by
+ * nature: a reworded message upstream falls through to the default, which is
+ * why the default is the raw message rather than a generic "something went
+ * wrong". Falling back to something honest and unhelpful beats falling back to
+ * something friendly and wrong.
+ */
+const ERROR_PATTERNS = [
+  [/rate limit|too many requests/i, 'auth.error.rateLimit'],
+  [/already registered|already been registered|user already exists/i, 'auth.error.alreadyRegistered'],
+  [/invalid login credentials|invalid email or password/i, 'auth.error.invalidCredentials'],
+  [/password should be at least|weak password/i, 'auth.error.weakPassword'],
+]
+
+function translateAuthError(message, t) {
+  const hit = ERROR_PATTERNS.find(([pattern]) => pattern.test(message))
+  return hit ? t(hit[1]) : message
+}
+
+/**
+ * Renders the confirmation sentence with the address in bold.
+ *
+ * The alternative was to split the sentence into two catalogue keys around the
+ * address, which forces every translator to keep a fragment before and a
+ * fragment after in the order English happens to use. Splitting the *finished*
+ * translation on the address instead means the sentence stays whole in the
+ * catalogue and each language can put the address wherever it belongs.
+ */
+function EmailSentence({ text, email }) {
+  const [before, ...after] = text.split(email)
+  return (
+    <>
+      {before}
+      <strong>{email}</strong>
+      {after.join(email)}
+    </>
+  )
+}
+
 export function AuthModal({ mode: initialMode, onClose }) {
   const { signIn, signUp, signInWithGoogle, isConfigured } = useAuth()
+  const t = useT()
 
   const [mode, setMode] = useState(initialMode)
   const [name, setName] = useState('')
@@ -105,10 +155,18 @@ export function AuthModal({ mode: initialMode, onClose }) {
       // dialog — otherwise a text selection that drags outside the panel would.
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="auth-panel" role="dialog" aria-modal="true" aria-label={
-        isSignUp ? 'Create an account' : 'Log in'
-      }>
-        <button type="button" className="auth-close plain" onClick={onClose} aria-label="Close">
+      <div
+        className="auth-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={isSignUp ? t('auth.signup.title') : t('auth.login.title')}
+      >
+        <button
+          type="button"
+          className="auth-close plain"
+          onClick={onClose}
+          aria-label={t('auth.close')}
+        >
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="m12.7 12 5.6-5.6-.7-.7-5.6 5.6-5.6-5.6-.7.7 5.6 5.6-5.6 5.6.7.7 5.6-5.6 5.6 5.6.7-.7-5.6-5.6Z" />
           </svg>
@@ -116,22 +174,19 @@ export function AuthModal({ mode: initialMode, onClose }) {
 
         {checkEmail ? (
           <>
-            <h2>Check your email</h2>
+            <h2>{t('auth.checkEmail.title')}</h2>
             <p className="auth-sub">
-              We sent a confirmation link to <strong>{email}</strong>. Open it to finish
-              creating your account.
+              <EmailSentence text={t('auth.checkEmail.body', { email })} email={email} />
             </p>
             <button type="button" className="auth-submit" onClick={onClose}>
-              Got it
+              {t('auth.checkEmail.ok')}
             </button>
           </>
         ) : (
           <>
-            <h2>{isSignUp ? 'Create an account' : 'Welcome back'}</h2>
+            <h2>{isSignUp ? t('auth.signup.title') : t('auth.login.title')}</h2>
             <p className="auth-sub">
-              {isSignUp
-                ? 'Save your audits and come back to them later.'
-                : 'Log in to see your saved audits.'}
+              {isSignUp ? t('auth.signup.sub') : t('auth.login.sub')}
             </p>
 
             {!isConfigured && (
@@ -149,11 +204,11 @@ export function AuthModal({ mode: initialMode, onClose }) {
               disabled={busy || !isConfigured}
             >
               <GoogleMark />
-              Continue with Google
+              {t('auth.google')}
             </button>
 
             <div className="auth-or">
-              <span>or</span>
+              <span>{t('auth.or')}</span>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -162,7 +217,7 @@ export function AuthModal({ mode: initialMode, onClose }) {
                   between you and the account you already have. */}
               {isSignUp && (
                 <label className="auth-field">
-                  Name
+                  {t('auth.name')}
                   <input
                     ref={nameRef}
                     type="text"
@@ -170,13 +225,13 @@ export function AuthModal({ mode: initialMode, onClose }) {
                     onChange={(e) => setName(e.target.value)}
                     required
                     autoComplete="name"
-                    placeholder="Your name"
+                    placeholder={t('auth.namePlaceholder')}
                   />
                 </label>
               )}
 
               <label className="auth-field">
-                Email
+                {t('auth.email')}
                 <input
                   ref={emailRef}
                   type="email"
@@ -190,7 +245,7 @@ export function AuthModal({ mode: initialMode, onClose }) {
               </label>
 
               <label className="auth-field">
-                Password
+                {t('auth.password')}
                 <input
                   type="password"
                   value={password}
@@ -204,15 +259,19 @@ export function AuthModal({ mode: initialMode, onClose }) {
                 />
               </label>
 
-              {error && <p className="auth-error">{error}</p>}
+              {error && <p className="auth-error">{translateAuthError(error, t)}</p>}
 
               <button type="submit" className="auth-submit" disabled={busy || !isConfigured}>
-                {busy ? 'Working…' : isSignUp ? 'Sign up' : 'Log in'}
+                {busy
+                  ? t('auth.busy')
+                  : isSignUp
+                    ? t('auth.submit.signup')
+                    : t('auth.submit.login')}
               </button>
             </form>
 
             <p className="auth-switch">
-              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+              {isSignUp ? t('auth.haveAccount') : t('auth.noAccount')}{' '}
               <button
                 type="button"
                 className="plain"
@@ -221,7 +280,7 @@ export function AuthModal({ mode: initialMode, onClose }) {
                   setError(null)
                 }}
               >
-                {isSignUp ? 'Log in' : 'Sign up'}
+                {isSignUp ? t('auth.switchToLogin') : t('auth.switchToSignup')}
               </button>
             </p>
           </>

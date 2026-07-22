@@ -165,7 +165,6 @@ export const ar = {
   // ---------- landing: guides ----------
   'landing.guides.heading': 'اقرأ المزيد',
   'landing.guides.lede': 'إجابات أطول عن كيفية بناء الدرجة وما تفعله بها.',
-  'landing.guides.englishOnly': 'بالإنجليزية',
 
   // ---------- landing: closing CTA ----------
   'landing.cta.heading': 'حوّل الدرجة إلى خطة',
@@ -217,4 +216,31 @@ export const ar = {
   'score.status.fail': 'فاشل',
   'score.status.skip': 'متخطى',
   'score.aboutFixer.locked': 'أنشئ حساباً لكتابة واحد',
+
+  // ---------- log in / sign up dialog ----------
+  'auth.close': 'إغلاق',
+  'auth.signup.title': 'إنشاء حساب',
+  'auth.signup.sub': 'احفظ عمليات التدقيق وعُد إليها لاحقًا.',
+  'auth.login.title': 'أهلًا بعودتك',
+  'auth.login.sub': 'سجّل الدخول لعرض عمليات التدقيق المحفوظة.',
+  'auth.google': 'المتابعة باستخدام Google',
+  'auth.or': 'أو',
+  'auth.name': 'الاسم',
+  'auth.namePlaceholder': 'اسمك',
+  'auth.email': 'البريد الإلكتروني',
+  'auth.password': 'كلمة المرور',
+  'auth.submit.signup': 'إنشاء حساب',
+  'auth.submit.login': 'تسجيل الدخول',
+  'auth.busy': 'جارٍ المعالجة…',
+  'auth.haveAccount': 'لديك حساب بالفعل؟',
+  'auth.noAccount': 'ليس لديك حساب؟',
+  'auth.switchToLogin': 'تسجيل الدخول',
+  'auth.switchToSignup': 'إنشاء حساب',
+  'auth.checkEmail.title': 'تحقّق من بريدك الإلكتروني',
+  'auth.checkEmail.body': 'أرسلنا رابط تأكيد إلى {email}. افتحه لإكمال إنشاء حسابك.',
+  'auth.checkEmail.ok': 'حسنًا',
+  'auth.error.rateLimit': 'محاولات كثيرة في وقت قصير. انتظر بضع دقائق ثم أعد المحاولة.',
+  'auth.error.alreadyRegistered': 'هذا البريد لديه حساب بالفعل. سجّل الدخول بدلًا من ذلك.',
+  'auth.error.invalidCredentials': 'البريد الإلكتروني وكلمة المرور لا يطابقان أي حساب.',
+  'auth.error.weakPassword': 'يجب أن تتكوّن كلمة المرور من 6 أحرف على الأقل.',
 }

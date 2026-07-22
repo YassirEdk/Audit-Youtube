@@ -183,9 +183,6 @@ export const en = {
   // ---------- landing: guides ----------
   'landing.guides.heading': 'Read more',
   'landing.guides.lede': 'Longer answers on how the score is built and what to do with it.',
-  // The guide pages themselves are English-only for now, so the links say so
-  // rather than leading a French reader to an English page unannounced.
-  'landing.guides.englishOnly': 'in English',
 
   // ---------- landing: closing CTA ----------
   'landing.cta.heading': 'Turn the score into a plan',
@@ -237,4 +234,31 @@ export const en = {
   'score.status.fail': 'fail',
   'score.status.skip': 'skipped',
   'score.aboutFixer.locked': 'Sign up to write one',
+
+  // ---------- log in / sign up dialog ----------
+  'auth.close': 'Close',
+  'auth.signup.title': 'Create an account',
+  'auth.signup.sub': 'Save your audits and come back to them later.',
+  'auth.login.title': 'Welcome back',
+  'auth.login.sub': 'Log in to see your saved audits.',
+  'auth.google': 'Continue with Google',
+  'auth.or': 'or',
+  'auth.name': 'Name',
+  'auth.namePlaceholder': 'Your name',
+  'auth.email': 'Email',
+  'auth.password': 'Password',
+  'auth.submit.signup': 'Sign up',
+  'auth.submit.login': 'Log in',
+  'auth.busy': 'Working…',
+  'auth.haveAccount': 'Already have an account?',
+  'auth.noAccount': "Don't have an account?",
+  'auth.switchToLogin': 'Log in',
+  'auth.switchToSignup': 'Sign up',
+  'auth.checkEmail.title': 'Check your email',
+  'auth.checkEmail.body': 'We sent a confirmation link to {email}. Open it to finish creating your account.',
+  'auth.checkEmail.ok': 'Got it',
+  'auth.error.rateLimit': 'Too many attempts just now. Wait a few minutes and try again.',
+  'auth.error.alreadyRegistered': 'That email already has an account. Log in instead.',
+  'auth.error.invalidCredentials': "That email and password don't match an account.",
+  'auth.error.weakPassword': 'Password must be at least 6 characters.',
 }

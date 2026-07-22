@@ -6,9 +6,8 @@ import { Sidebar } from './Sidebar.jsx'
 import { SearchIcon, Shell } from './Shell.jsx'
 import { readDepth, writeDepth } from './depth.js'
 import { FREE_VIDEOS } from './limits.js'
-import { I18nProvider, useT } from './i18n/index.jsx'
+import { useT } from './i18n/index.jsx'
 import { useLocked } from './useAuth.js'
-import { useRoute } from './useRoute.js'
 import { useScrollSpy } from './useScrollSpy.js'
 import './App.css'
 
@@ -22,25 +21,13 @@ import './App.css'
 const SECTIONS = ['checks', 'how', 'faq', 'guides']
 
 /**
- * Reads the locale off the route and puts the translation context around
- * everything below it.
+ * The page under the masthead.
  *
- * The split exists because of an ordering problem: the locale comes from the
- * URL, which only useRoute knows how to read, but every component under here
- * needs the catalogue that choice selects. So the outer component routes and
- * the inner one renders — the provider can't wrap a hook that hasn't run yet.
+ * `route` is passed in rather than read here: main.jsx owns it, because
+ * I18nProvider has to sit above AuthProvider — which renders the login dialog —
+ * and both therefore need the locale before this component mounts.
  */
-function App() {
-  const route = useRoute()
-
-  return (
-    <I18nProvider locale={route.locale}>
-      <AppView route={route} />
-    </I18nProvider>
-  )
-}
-
-function AppView({ route }) {
+function App({ route }) {
   const { channel, locale, navigate, changeLocale } = route
   const t = useT()
   const locked = useLocked()

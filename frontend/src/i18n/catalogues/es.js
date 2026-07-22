@@ -162,7 +162,6 @@ export const es = {
   // ---------- landing: guides ----------
   'landing.guides.heading': 'Leer más',
   'landing.guides.lede': 'Respuestas más largas sobre cómo se construye la puntuación y qué hacer con ella.',
-  'landing.guides.englishOnly': 'en inglés',
 
   // ---------- landing: closing CTA ----------
   'landing.cta.heading': 'Convierte la puntuación en un plan',
@@ -214,4 +213,31 @@ export const es = {
   'score.status.fail': 'reprobada',
   'score.status.skip': 'omitida',
   'score.aboutFixer.locked': 'Crea una cuenta para escribir una',
+
+  // ---------- log in / sign up dialog ----------
+  'auth.close': 'Cerrar',
+  'auth.signup.title': 'Crea una cuenta',
+  'auth.signup.sub': 'Guarda tus auditorías y vuelve a ellas después.',
+  'auth.login.title': 'Qué bueno verte de nuevo',
+  'auth.login.sub': 'Inicia sesión para ver tus auditorías guardadas.',
+  'auth.google': 'Continuar con Google',
+  'auth.or': 'o',
+  'auth.name': 'Nombre',
+  'auth.namePlaceholder': 'Tu nombre',
+  'auth.email': 'Correo',
+  'auth.password': 'Contraseña',
+  'auth.submit.signup': 'Crear cuenta',
+  'auth.submit.login': 'Iniciar sesión',
+  'auth.busy': 'Procesando…',
+  'auth.haveAccount': '¿Ya tienes una cuenta?',
+  'auth.noAccount': '¿No tienes una cuenta?',
+  'auth.switchToLogin': 'Iniciar sesión',
+  'auth.switchToSignup': 'Crear cuenta',
+  'auth.checkEmail.title': 'Revisa tu correo',
+  'auth.checkEmail.body': 'Enviamos un enlace de confirmación a {email}. Ábrelo para terminar de crear tu cuenta.',
+  'auth.checkEmail.ok': 'Entendido',
+  'auth.error.rateLimit': 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
+  'auth.error.alreadyRegistered': 'Ese correo ya tiene una cuenta. Mejor inicia sesión.',
+  'auth.error.invalidCredentials': 'Ese correo y esa contraseña no coinciden con ninguna cuenta.',
+  'auth.error.weakPassword': 'La contraseña debe tener al menos 6 caracteres.',
 }

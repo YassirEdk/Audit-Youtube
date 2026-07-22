@@ -3789,14 +3789,6 @@ footer p {
   margin-left: 0.5rem;
 }
 
-/* Marks a link that leads to an English-only document. Deliberately quiet —
-   it is a caveat, not a label, and it sits after the link text. */
-.guide-lang {
-  font-size: 0.78rem;
-  color: var(--text-3, var(--text-2));
-  white-space: nowrap;
-}
-
 /* ---------- right-to-left (Arabic) ---------- */
 
 /*

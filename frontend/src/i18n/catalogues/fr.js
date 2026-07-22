@@ -164,7 +164,6 @@ export const fr = {
   // ---------- landing: guides ----------
   'landing.guides.heading': 'En savoir plus',
   'landing.guides.lede': 'Des réponses plus longues sur la construction du score et sur ce qu\'il faut en faire.',
-  'landing.guides.englishOnly': 'en anglais',
 
   // ---------- landing: closing CTA ----------
   'landing.cta.heading': 'Transformez le score en plan d\'action',
@@ -216,4 +215,31 @@ export const fr = {
   'score.status.fail': 'échec',
   'score.status.skip': 'ignoré',
   'score.aboutFixer.locked': "Inscrivez-vous pour en rédiger une",
+
+  // ---------- log in / sign up dialog ----------
+  'auth.close': 'Fermer',
+  'auth.signup.title': 'Créer un compte',
+  'auth.signup.sub': 'Enregistrez vos audits et retrouvez-les plus tard.',
+  'auth.login.title': 'Bon retour',
+  'auth.login.sub': 'Connectez-vous pour voir vos audits enregistrés.',
+  'auth.google': 'Continuer avec Google',
+  'auth.or': 'ou',
+  'auth.name': 'Nom',
+  'auth.namePlaceholder': 'Votre nom',
+  'auth.email': 'E-mail',
+  'auth.password': 'Mot de passe',
+  'auth.submit.signup': "S'inscrire",
+  'auth.submit.login': 'Se connecter',
+  'auth.busy': 'En cours…',
+  'auth.haveAccount': 'Vous avez déjà un compte ?',
+  'auth.noAccount': "Vous n'avez pas de compte ?",
+  'auth.switchToLogin': 'Se connecter',
+  'auth.switchToSignup': "S'inscrire",
+  'auth.checkEmail.title': 'Vérifiez vos e-mails',
+  'auth.checkEmail.body': 'Nous avons envoyé un lien de confirmation à {email}. Ouvrez-le pour terminer la création de votre compte.',
+  'auth.checkEmail.ok': "J'ai compris",
+  'auth.error.rateLimit': 'Trop de tentatives. Attendez quelques minutes avant de réessayer.',
+  'auth.error.alreadyRegistered': 'Cette adresse a déjà un compte. Connectez-vous plutôt.',
+  'auth.error.invalidCredentials': 'Cette adresse et ce mot de passe ne correspondent à aucun compte.',
+  'auth.error.weakPassword': 'Le mot de passe doit contenir au moins 6 caractères.',
 }

@@ -411,17 +411,17 @@ export function Landing({ onStart }) {
         <p className="section-lede">{t('landing.guides.lede')}</p>
         {/* Real anchors, not router calls: these are separate documents served
             by the host, so a click has to leave the app.
-            The guide pages are English-only, and the labels stay English with
-            an explicit note rather than being translated: a translated link
-            title that opens an English document is a worse experience than an
-            English link that says so up front. */}
+
+            hrefLang and lang stay: the pages are English-only, and those two
+            attributes are how a crawler and a screen reader are told so. They
+            cost nothing visually, which is the difference between them and the
+            "in English" badge that used to sit here. */}
         <ul className="guide-links">
           {GUIDES.map(([slug, label]) => (
             <li key={slug}>
               <a href={`/${slug}`} hrefLang="en" lang="en">
                 {label}
-              </a>{' '}
-              <span className="guide-lang">{t('landing.guides.englishOnly')}</span>
+              </a>
             </li>
           ))}
         </ul>
