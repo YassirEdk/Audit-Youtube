@@ -5,7 +5,7 @@ cd /d "%~dp0"
 
 if not exist ".venv\Scripts\python.exe" (
     echo ERROR: .venv not found in %CD%
-    echo Run this first:  python -m venv .venv ^&^& .venv\Scripts\python.exe -m pip install -r requirements.txt
+    echo Run this first:  python -m venv .venv ^&^& .venv\Scripts\python.exe -m pip install -r requirements-dev.txt
     pause
     exit /b 1
 )
