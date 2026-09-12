@@ -36,7 +36,7 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 # The only free-tier provider here that also deploys: hosted, so it works from
 # a serverless function, and ~1000 requests/day without a card.
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 
 
